@@ -1,0 +1,65 @@
+import type { SiteId } from "@/adapters/types";
+import type { Watch } from "@/shared/schemas";
+import {
+  clearWatchAlarm,
+  effectiveIntervalMinutes,
+  jitteredDelayMinutes,
+  scheduleWatchAlarm,
+} from "@/background/alarms";
+import type { CheckWatchDeps } from "./checkWatch";
+import { checkWatch } from "./checkWatch";
+
+export interface LifecycleDeps extends CheckWatchDeps {
+  siteFloorsMinutes: Record<SiteId, number>;
+}
+
+async function scheduleNext(deps: LifecycleDeps, watch: Watch): Promise<void> {
+  const minutes = effectiveIntervalMinutes(watch, deps.siteFloorsMinutes);
+  await scheduleWatchAlarm(watch.id, jitteredDelayMinutes(minutes));
+}
+
+/**
+ * uxSmartBuy.md §4 F2: creating a watch runs its first check immediately
+ * (not after the interval) as a silent baseline — checkWatch() itself
+ * handles the no-notify part via `!baselineCompletedAt`. Only once that's
+ * done do we schedule the recurring alarm.
+ */
+export async function createWatchAndRunBaseline(
+  deps: LifecycleDeps,
+  input: unknown,
+): Promise<Watch> {
+  const created = await deps.watches.create(input);
+  await checkWatch(created, deps);
+  const settled = (await deps.watches.get(created.id)) ?? created;
+  await scheduleNext(deps, settled);
+  return settled;
+}
+
+/** "Sprawdź teraz" — §5.2 watch menu. Runs a check outside the alarm cycle,
+ * then re-schedules the next regular alarm from now. */
+export async function checkWatchNow(deps: LifecycleDeps, watchId: string): Promise<void> {
+  const watch = await deps.watches.get(watchId);
+  if (!watch) throw new Error(`Watch not found: ${watchId}`);
+  await clearWatchAlarm(watchId);
+  await checkWatch(watch, deps);
+  const settled = (await deps.watches.get(watchId)) ?? watch;
+  await scheduleNext(deps, settled);
+}
+
+export async function pauseWatch(deps: LifecycleDeps, watchId: string): Promise<Watch> {
+  const watch = await deps.watches.setPaused(watchId, true);
+  await clearWatchAlarm(watchId);
+  return watch;
+}
+
+export async function resumeWatch(deps: LifecycleDeps, watchId: string): Promise<Watch> {
+  const watch = await deps.watches.setPaused(watchId, false);
+  await scheduleNext(deps, watch);
+  return watch;
+}
+
+export async function deleteWatch(deps: LifecycleDeps, watchId: string): Promise<void> {
+  await clearWatchAlarm(watchId);
+  await deps.offers.deleteByWatch(watchId);
+  await deps.watches.remove(watchId);
+}

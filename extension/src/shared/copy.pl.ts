@@ -208,6 +208,13 @@ export const copy = {
   },
 
   price: {
-    format: (n: number) => `${n.toLocaleString("pl-PL").replace(/ /g, " ")} zł`,
+    // §7: "4 200 zł" — a plain space as the thousands separator. Built by
+    // hand rather than via toLocaleString("pl-PL"), whose grouping
+    // character depends on the runtime's ICU data (not deterministic
+    // across environments/browsers).
+    format: (n: number) =>
+      `${Math.round(n)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, " ")} zł`,
   },
 } as const;

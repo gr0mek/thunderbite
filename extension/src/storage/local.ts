@@ -4,6 +4,7 @@
 export interface KeyValueStore {
   get<T>(key: string): Promise<T | undefined>;
   set<T>(key: string, value: T): Promise<void>;
+  remove(key: string): Promise<void>;
 }
 
 export class ChromeLocalStore implements KeyValueStore {
@@ -14,6 +15,10 @@ export class ChromeLocalStore implements KeyValueStore {
 
   async set<T>(key: string, value: T): Promise<void> {
     await chrome.storage.local.set({ [key]: value });
+  }
+
+  async remove(key: string): Promise<void> {
+    await chrome.storage.local.remove(key);
   }
 }
 
@@ -27,5 +32,9 @@ export class MemoryStore implements KeyValueStore {
 
   async set<T>(key: string, value: T): Promise<void> {
     this.data.set(key, value);
+  }
+
+  async remove(key: string): Promise<void> {
+    this.data.delete(key);
   }
 }

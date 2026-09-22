@@ -8,12 +8,12 @@ export interface SearchQuery {
   keywords: string[];
   /** None of these may appear (AND NOT). */
   excludeKeywords: string[];
-  priceMin?: number;
-  priceMax?: number;
-  location?: { city: string; radiusKm?: number };
-  condition?: "new" | "used" | "any";
+  priceMin?: number | undefined;
+  priceMax?: number | undefined;
+  location?: { city: string; radiusKm?: number | undefined } | undefined;
+  condition?: "new" | "used" | "any" | undefined;
   /** Site-specific extras, e.g. Vinted size. */
-  extra?: Record<string, string>;
+  extra?: Record<string, string> | undefined;
 }
 
 export interface NormalizedOffer {
