@@ -142,7 +142,7 @@ export function NewWatchForm({
           type="button"
           class="icon-btn"
           style={{ background: "none" }}
-          aria-label="Wstecz"
+          aria-label={copy.common.back}
           onClick={onCancel}
         >
           ←
@@ -157,9 +157,10 @@ export function NewWatchForm({
         <Field label={copy.form.nameLabel}>
           <input
             class="text-field text-field--active"
+            aria-label={copy.form.nameLabel}
             value={name}
             onInput={(e) => setName((e.target as HTMLInputElement).value)}
-            placeholder="np. Leica M6"
+            placeholder={copy.form.namePlaceholder}
             autoFocus
           />
           <div class="text-meta" style={{ marginTop: 8, marginBottom: 6 }}>
@@ -177,6 +178,7 @@ export function NewWatchForm({
             <Field label={copy.form.priceMaxLabel}>
               <div class="fx ac jb text-field">
                 <input
+                  aria-label={copy.form.priceMaxLabel}
                   value={priceMax}
                   onInput={(e) => setPriceMax((e.target as HTMLInputElement).value)}
                   inputMode="numeric"
@@ -232,6 +234,7 @@ export function NewWatchForm({
               <select
                 class="select-field"
                 style={{ width: "auto" }}
+                aria-label={copy.form.emailLabel}
                 value={notifyEmail}
                 disabled={!settings.emailVerified}
                 onChange={(e) =>
@@ -268,6 +271,7 @@ export function NewWatchForm({
           <Field label={copy.form.priceMinLabel}>
             <input
               class="text-field"
+              aria-label={copy.form.priceMinLabel}
               value={priceMin}
               onInput={(e) => setPriceMin((e.target as HTMLInputElement).value)}
               inputMode="numeric"
@@ -286,9 +290,10 @@ export function NewWatchForm({
               <Field label={copy.form.locationLabel}>
                 <input
                   class="text-field"
+                  aria-label={copy.form.locationLabel}
                   value={locationCity}
                   onInput={(e) => setLocationCity((e.target as HTMLInputElement).value)}
-                  placeholder="Miasto"
+                  placeholder={copy.form.cityPlaceholder}
                 />
               </Field>
             </div>
@@ -296,6 +301,7 @@ export function NewWatchForm({
               <Field label="+ km">
                 <input
                   class="text-field"
+                  aria-label={copy.form.radiusLabel}
                   value={locationRadius}
                   onInput={(e) => setLocationRadius((e.target as HTMLInputElement).value)}
                   inputMode="numeric"
@@ -306,6 +312,7 @@ export function NewWatchForm({
           <Field label={copy.form.conditionLabel}>
             <select
               class="select-field"
+              aria-label={copy.form.conditionLabel}
               value={condition}
               onChange={(e) =>
                 setCondition((e.target as HTMLSelectElement).value as Condition)
@@ -319,6 +326,7 @@ export function NewWatchForm({
           <Field label={copy.form.sizeLabel}>
             <input
               class="text-field"
+              aria-label={copy.form.sizeLabel}
               value={size}
               onInput={(e) => setSize((e.target as HTMLInputElement).value)}
             />

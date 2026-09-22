@@ -178,7 +178,7 @@ export function WatchDetailScreen({ watchId, onBack, onEdit }: WatchDetailScreen
         }}
         onClick={onBack}
       >
-        ← {copy.watchDetail.breadcrumb.replace(" /", "")}
+        ← {copy.optionsNav.watches}
       </button>
     </div>
   );

@@ -78,6 +78,7 @@ export function SettingsScreen({
           <input
             class="text-field"
             style={{ minWidth: 240, width: "auto", flex: "1 1 240px" }}
+            aria-label={copy.settings.emailSection}
             value={email}
             onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
             onBlur={() =>
@@ -108,6 +109,7 @@ export function SettingsScreen({
             <div class="field-label">{copy.form.intervalLabel}</div>
             <select
               class="select-field"
+              aria-label={copy.form.intervalLabel}
               value={settings.defaultCheckIntervalMinutes}
               onChange={(e) =>
                 void update({
@@ -125,9 +127,10 @@ export function SettingsScreen({
             </select>
           </div>
           <div>
-            <div class="field-label">{copy.form.emailLabel.replace(":", "")}</div>
+            <div class="field-label">{copy.settings.emailSection}</div>
             <select
               class="select-field"
+              aria-label={copy.settings.emailSection}
               value={settings.defaultEmailMode}
               onChange={(e) =>
                 void update({
@@ -144,6 +147,7 @@ export function SettingsScreen({
             <div class="field-label">{copy.settings.digestHourLabel}</div>
             <select
               class="select-field"
+              aria-label={copy.settings.digestHourLabel}
               value={settings.digestHour}
               onChange={(e) =>
                 void update({ digestHour: (e.target as HTMLSelectElement).value })

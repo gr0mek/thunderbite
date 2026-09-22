@@ -14,13 +14,11 @@ interface OfferTableRowProps {
 export function OfferTableRow({ offer, onOpen, onHide }: OfferTableRowProps) {
   const stateLabel = copy.offerState[offer.state];
   return (
-    <div
-      class="offer-table-row"
-      style={{ opacity: offer.state === "hidden" ? 0.65 : 1, cursor: "pointer" }}
-      onClick={onOpen}
-    >
+    <div class="offer-table-row" style={{ opacity: offer.state === "hidden" ? 0.65 : 1 }}>
       <span class="thumb" />
-      <OfferTitleBlock offer={offer} />
+      <button type="button" class="offer-row-trigger" onClick={onOpen}>
+        <OfferTitleBlock offer={offer} />
+      </button>
       <span class="text-price tr">{formatPrice(offer.price)}</span>
       <span class="text-meta tr">{stateLabel}</span>
       {offer.state === "hidden" ? (

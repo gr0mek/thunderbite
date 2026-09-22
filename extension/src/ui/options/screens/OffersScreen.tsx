@@ -65,10 +65,13 @@ export function OffersScreen({ watches }: OffersScreenProps) {
         <select
           class="select-field"
           style={{ width: "auto" }}
+          aria-label={copy.optionsNav.watches}
           value={watchId}
           onChange={(e) => setWatchId((e.target as HTMLSelectElement).value)}
         >
-          <option value="">{copy.optionsNav.watches}: wszystkie</option>
+          <option value="">
+            {copy.optionsNav.watches}: {copy.common.allFeminine}
+          </option>
           {watches.map((w) => (
             <option key={w.id} value={w.id}>
               {w.name}
@@ -78,10 +81,13 @@ export function OffersScreen({ watches }: OffersScreenProps) {
         <select
           class="select-field"
           style={{ width: "auto" }}
+          aria-label={copy.common.site}
           value={site}
           onChange={(e) => setSite((e.target as HTMLSelectElement).value as SiteId | "")}
         >
-          <option value="">Serwis: wszystkie</option>
+          <option value="">
+            {copy.common.site}: {copy.common.allFeminine}
+          </option>
           {ALL_SITES.map((s) => (
             <option key={s} value={s}>
               {copy.siteNames[s]}
@@ -91,7 +97,7 @@ export function OffersScreen({ watches }: OffersScreenProps) {
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState message="Brak ofert w tym widoku." />
+        <EmptyState message={copy.offersScreen.empty} />
       ) : (
         <div class="options-panel" style={{ padding: 0 }}>
           {rows.map((row, i) => (

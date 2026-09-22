@@ -39,9 +39,19 @@ export function WatchRow({
   ].filter(Boolean);
 
   return (
-    <div class="popup-watch-row" role="button" tabIndex={0} onClick={onOpenDetail}>
+    // No onClick/role on the row itself — nesting it together with the
+    // toggle/menu/name buttons below would trip axe's nested-interactive
+    // (WCAG) check. The name is its own real button, so opening the watch's
+    // detail works from mouse and keyboard alike.
+    <div class="popup-watch-row">
       <div class="fx ac jb gap2">
-        <span class="text-offer-title ellipsis">{watch.name}</span>
+        <button
+          type="button"
+          class="text-offer-title ellipsis watch-row-name"
+          onClick={onOpenDetail}
+        >
+          {watch.name}
+        </button>
         <span class="fx ac gap2 noshrink" onClick={(e) => e.stopPropagation()}>
           <Toggle
             checked={!watch.paused}

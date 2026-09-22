@@ -14,9 +14,15 @@ interface OfferRowProps {
  * accent, tabular numerals, right-aligned) with "Ukryj"/"Widziana" below it. */
 export function OfferRow({ offer, watchName, onOpen, onHide }: OfferRowProps) {
   return (
-    <div class="popup-offer-row" role="button" tabIndex={0} onClick={onOpen}>
+    // No onClick/role on the row itself — nesting it as (or inside) another
+    // interactive element together with the real "Ukryj" button would trip
+    // axe's nested-interactive (WCAG) check. The title block is its own
+    // real button, so opening the offer works from mouse and keyboard.
+    <div class="popup-offer-row">
       <span class="thumb" />
-      <OfferTitleBlock offer={offer} watchName={watchName} />
+      <button type="button" class="offer-row-trigger" onClick={onOpen}>
+        <OfferTitleBlock offer={offer} watchName={watchName} />
+      </button>
       <div class="col gap1" style={{ alignItems: "flex-end" }}>
         <span
           class="text-price"
@@ -29,8 +35,7 @@ export function OfferRow({ offer, watchName, onOpen, onHide }: OfferRowProps) {
         ) : (
           <button
             type="button"
-            class="text-meta"
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
+            class="text-meta offer-row-hide"
             onClick={(e) => {
               e.stopPropagation();
               onHide();

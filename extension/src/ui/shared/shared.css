@@ -463,6 +463,23 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.32);
 }
 
+/* Unstyled button wrapping an offer row's title block (both the popup's
+   OfferRow and the options page's OfferTableRow use this) — a real button
+   for keyboard/screen-reader access without visually looking like one. */
+.offer-row-trigger {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
 .empty-state {
   flex: 1;
   display: flex;

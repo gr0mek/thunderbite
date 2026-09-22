@@ -58,6 +58,7 @@ export const copy = {
     titleNew: "Nowa obserwacja",
     titleEdit: "Edytuj",
     nameLabel: "Czego szukasz?",
+    namePlaceholder: "np. Leica M6",
     nameVariantsLabel: "Warianty nazwy (opcjonalnie)",
     addVariant: "+ dodaj",
     priceMaxLabel: "Cena maks.",
@@ -80,6 +81,8 @@ export const copy = {
     moreFiltersSummary: "cena min. · wyklucz słowa · lokalizacja · stan · rozmiar",
     excludeKeywordsLabel: "Wyklucz słowa",
     locationLabel: "Lokalizacja",
+    cityPlaceholder: "Miasto",
+    radiusLabel: "Promień (km)",
     conditionLabel: "Stan",
     conditionNew: "Nowy",
     conditionUsed: "Używany",
@@ -103,6 +106,16 @@ export const copy = {
     skip: "Pomiń",
     permissionNote:
       "O zgodę na powiadomienia zapytamy po zapisaniu pierwszej obserwacji.",
+  },
+
+  common: {
+    back: "Wstecz",
+    allFeminine: "wszystkie",
+    site: "Serwis",
+  },
+
+  offersScreen: {
+    empty: "Brak ofert w tym widoku.",
   },
 
   optionsNav: {
