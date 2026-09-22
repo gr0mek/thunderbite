@@ -1,3 +1,5 @@
+import type { SiteId } from "@/adapters/types";
+import type { SearchContext } from "@/adapters/searchContext";
 import type { Watch } from "@/shared/schemas";
 
 // Only watch-lifecycle actions that touch chrome.alarms/adapters go through
@@ -12,7 +14,9 @@ export type BackgroundRequest =
   | { type: "watch/checkNow"; watchId: string }
   | { type: "watch/pause"; watchId: string }
   | { type: "watch/resume"; watchId: string }
-  | { type: "watch/delete"; watchId: string };
+  | { type: "watch/delete"; watchId: string }
+  | { type: "quickAdd/detected"; site: SiteId; context: SearchContext }
+  | { type: "quickAdd/get"; tabId: number };
 
 export type BackgroundResponse<T = unknown> =
   { ok: true; data: T } | { ok: false; error: string };
@@ -46,3 +50,15 @@ export const resumeWatch = (watchId: string) =>
   sendToBackground<Watch>({ type: "watch/resume", watchId });
 export const deleteWatch = (watchId: string) =>
   sendToBackground<void>({ type: "watch/delete", watchId });
+
+export async function getQuickAddContext(): Promise<{
+  site: SiteId;
+  context: SearchContext;
+} | null> {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) return null;
+  return sendToBackground<{ site: SiteId; context: SearchContext } | null>({
+    type: "quickAdd/get",
+    tabId: tab.id,
+  });
+}

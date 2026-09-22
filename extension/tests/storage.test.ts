@@ -8,6 +8,7 @@ import { OfferRepo } from "@/storage/offerRepo";
 import { openOfferDb } from "@/storage/offerDb";
 import { migrateStorage } from "@/storage/migrations";
 import { offerKey } from "@/adapters/types";
+import { copy } from "@/shared/copy.pl";
 import type { OfferRecord } from "@/shared/schemas";
 
 describe("migrateStorage", () => {
@@ -41,12 +42,15 @@ describe("WatchRepo", () => {
     expect(w.paused).toBe(false);
   });
 
-  it("enforces the watch limit from settings", async () => {
+  it("enforces the watch limit from settings, with the §6 banner copy as the error message", async () => {
     const { watches, settings } = makeRepo();
     await settings.update({ watchLimit: 1 });
     await watches.create({ name: "Pierwsza" });
     await expect(watches.create({ name: "Druga" })).rejects.toBeInstanceOf(
       WatchLimitReachedError,
+    );
+    await expect(watches.create({ name: "Druga" })).rejects.toThrow(
+      copy.banners.watchLimitReached(1),
     );
   });
 

@@ -9,7 +9,10 @@ import {
   useSiteHealth,
   useWatch,
 } from "@/ui/shared/dataHooks";
+import { Banner } from "@/ui/shared/Banner";
 import { OfferTableRow } from "../components/OfferTableRow";
+
+const LOW_RESULTS_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 interface WatchDetailScreenProps {
   watchId: string;
@@ -23,9 +26,19 @@ export function WatchDetailScreen({ watchId, onBack, onEdit }: WatchDetailScreen
   const { watch, reload: reloadWatch } = useWatch(watchId);
   const [filter, setFilter] = useState<StateFilter>("new");
   const { offers, reload: reloadOffers } = useOffersByWatch(watchId, filter);
+  const { offers: allOffers } = useOffersByWatch(watchId, "all");
   const siteHealth = useSiteHealth();
 
   if (!watch) return null;
+
+  const mostRecentOfferAt = allOffers
+    .map((o) => o.foundAt)
+    .sort()
+    .at(-1);
+  const showLowResultsHint =
+    !!watch.baselineCompletedAt &&
+    (!mostRecentOfferAt ||
+      Date.now() - new Date(mostRecentOfferAt).getTime() > LOW_RESULTS_WINDOW_MS);
 
   const problemSite = watch.sites
     .map((s) => siteHealth.find((h) => h.site === s))
@@ -101,6 +114,12 @@ export function WatchDetailScreen({ watchId, onBack, onEdit }: WatchDetailScreen
             ⚠ <strong>{copy.watchTile.problem(copy.siteNames[problemSite.site])}</strong>
           </span>
         </div>
+      )}
+
+      {!problemSite && showLowResultsHint && (
+        <Banner action={{ label: copy.watchDetail.edit, onClick: () => onEdit(watch) }}>
+          {copy.banners.lowResultsHint}
+        </Banner>
       )}
 
       <div class="fx gap2">

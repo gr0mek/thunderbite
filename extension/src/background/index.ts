@@ -34,6 +34,7 @@ import {
 import { ChromeLocalStore } from "@/storage/local";
 import { createStorage } from "@/storage";
 import { Logger } from "@/shared/logger";
+import type { SearchContext } from "@/adapters/searchContext";
 
 // TODO(#6-#8): swap these for the real OLX/Vinted/Allegro adapters once
 // fixtures are available — see docs/adr-001-adapter-fixture-blocker.md.
@@ -112,7 +113,21 @@ void chrome.alarms.create(HOUSEKEEPING_ALARM_NAME, {
   periodInMinutes: HOUSEKEEPING_PERIOD_MINUTES,
 });
 
-async function handleMessage(request: BackgroundRequest): Promise<unknown> {
+// F3 quick-add (uxSmartBuy.md §4 F3): content scripts report what they see
+// on a marketplace search page, keyed by tab id, so the popup can show a
+// banner if it's opened while that tab is active. Detection itself is
+// stubbed out for now (adapters/searchContext.ts), so this map stays
+// empty in practice — the relay is real and ready regardless. In-memory
+// only: losing it on a service-worker restart just means the banner
+// doesn't show until the content script re-reports, which is harmless.
+const quickAddByTab = new Map<number, { site: SiteId; context: SearchContext }>();
+
+chrome.tabs.onRemoved.addListener((tabId) => quickAddByTab.delete(tabId));
+
+async function handleMessage(
+  request: BackgroundRequest,
+  sender: chrome.runtime.MessageSender,
+): Promise<unknown> {
   switch (request.type) {
     case "watch/create":
       return createWatchAndRunBaseline(lifecycleDeps, request.input);
@@ -126,12 +141,22 @@ async function handleMessage(request: BackgroundRequest): Promise<unknown> {
       return runResumeWatch(lifecycleDeps, request.watchId);
     case "watch/delete":
       return runDeleteWatch(lifecycleDeps, request.watchId);
+    case "quickAdd/detected":
+      if (sender.tab?.id !== undefined) {
+        quickAddByTab.set(sender.tab.id, {
+          site: request.site,
+          context: request.context,
+        });
+      }
+      return undefined;
+    case "quickAdd/get":
+      return quickAddByTab.get(request.tabId) ?? null;
   }
 }
 
 chrome.runtime.onMessage.addListener(
-  (request: BackgroundRequest, _sender, sendResponse) => {
-    handleMessage(request)
+  (request: BackgroundRequest, sender, sendResponse) => {
+    handleMessage(request, sender)
       .then((data) => sendResponse({ ok: true, data } satisfies BackgroundResponse))
       .catch((err: unknown) =>
         sendResponse({

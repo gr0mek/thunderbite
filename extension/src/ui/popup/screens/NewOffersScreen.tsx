@@ -2,16 +2,21 @@ import { Fragment } from "preact";
 import { useMemo } from "preact/hooks";
 import { copy } from "@/shared/copy.pl";
 import { formatDayLabel, formatRelativeTime } from "@/shared/format";
+import type { SearchContext } from "@/adapters/searchContext";
+import type { SiteId } from "@/adapters/types";
 import type { OfferRecord, Watch } from "@/shared/schemas";
 import { checkWatchNow as sendCheckWatchNow } from "@/background/messages";
 import { storage, useAllOffers } from "@/ui/shared/dataHooks";
 import { EmptyState } from "@/ui/shared/EmptyState";
 import { OfferRow } from "../components/OfferRow";
+import { QuickAddBanner } from "../components/QuickAddBanner";
 import { Skeleton } from "../components/Skeleton";
 
 interface NewOffersScreenProps {
   watches: Watch[];
   onAddWatch: () => void;
+  quickAdd?: { site: SiteId; context: SearchContext } | null;
+  onQuickAdd?: () => void;
 }
 
 interface Row {
@@ -19,7 +24,12 @@ interface Row {
   watchName: string;
 }
 
-export function NewOffersScreen({ watches, onAddWatch }: NewOffersScreenProps) {
+export function NewOffersScreen({
+  watches,
+  onAddWatch,
+  quickAdd,
+  onQuickAdd,
+}: NewOffersScreenProps) {
   const { offersByWatch, reload } = useAllOffers(watches, "new");
   const watchById = useMemo(() => new Map(watches.map((w) => [w.id, w])), [watches]);
 
@@ -112,6 +122,13 @@ export function NewOffersScreen({ watches, onAddWatch }: NewOffersScreenProps) {
   return (
     <div class="col f1" style={{ minHeight: 0 }}>
       <div class="col popup-scroll">
+        {quickAdd && onQuickAdd && (
+          <QuickAddBanner
+            site={quickAdd.site}
+            context={quickAdd.context}
+            onAdd={onQuickAdd}
+          />
+        )}
         {fresh.map((row) => {
           const day = formatDayLabel(row.offer.foundAt);
           const showHeader = day !== lastDay;

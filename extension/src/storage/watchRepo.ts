@@ -1,9 +1,12 @@
+import { copy } from "@/shared/copy.pl";
 import { NewWatchInputSchema, WatchSchema, type Watch } from "@/shared/schemas";
 import type { RootStore } from "./rootStore";
 
 export class WatchLimitReachedError extends Error {
   constructor(readonly limit: number) {
-    super(`Watch limit reached (${limit})`);
+    // §6 "Limit" banner copy doubles as the error message shown in the
+    // create-watch form, so both surfaces say the exact same thing.
+    super(copy.banners.watchLimitReached(limit));
     this.name = "WatchLimitReachedError";
   }
 }

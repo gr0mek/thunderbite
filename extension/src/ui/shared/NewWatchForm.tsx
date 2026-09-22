@@ -20,18 +20,28 @@ const ALL_SITES: SiteId[] = ["olx", "vinted", "allegro"];
 
 interface NewWatchFormProps {
   watch?: Watch | undefined;
+  /** Pre-fill for create-mode only, from the F3 quick-add banner. */
+  initialQuery?: { name: string; priceMax?: number | undefined } | undefined;
   settings: Settings;
   onDone: (watch: Watch) => void;
   onCancel: () => void;
 }
 
-export function NewWatchForm({ watch, settings, onDone, onCancel }: NewWatchFormProps) {
+export function NewWatchForm({
+  watch,
+  initialQuery,
+  settings,
+  onDone,
+  onCancel,
+}: NewWatchFormProps) {
   const isEdit = !!watch;
-  const [name, setName] = useState(watch?.name ?? "");
+  const [name, setName] = useState(watch?.name ?? initialQuery?.name ?? "");
   const [variants, setVariants] = useState<string[]>(
     (watch?.keywords ?? []).filter((k) => k !== watch?.name),
   );
-  const [priceMax, setPriceMax] = useState(watch?.priceMax?.toString() ?? "");
+  const [priceMax, setPriceMax] = useState(
+    (watch?.priceMax ?? initialQuery?.priceMax)?.toString() ?? "",
+  );
   const [sites, setSites] = useState<SiteId[]>(watch?.sites ?? ALL_SITES);
   const [interval, setInterval_] = useState(
     watch?.checkIntervalMinutes ?? settings.defaultCheckIntervalMinutes,
