@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet"><style>body{margin:0;background:#0E1014;font-family:Manrope,system-ui,sans-serif}a{color:#7C95FF}a:hover{color:#ECEDEF}</style></helmet>
+
+<section style="padding:40px 44px 32px;border-bottom:1px solid #1F2229" id="t1">
+  <div style="display:flex;align-items:baseline;gap:10px;margin:0 0 6px">
+    <a href="#t1" style="font:700 10px/1 ui-monospace,Menlo,monospace;padding:4px 7px;background:#F2C230;color:#16181D;border-radius:4px;text-decoration:none">1</a>
+    <span style="font:700 13px/1.2 Manrope,system-ui,sans-serif;color:#ECEDEF">Thunder Bait — wireframe'y MVP, motyw ciemny</span>
+  </div>
+  <p style="max-width:760px;margin:0 0 28px;font:400 12px/1.6 Manrope,system-ui,sans-serif;color:#9BA1AB;text-wrap:pretty">Założenia: rozszerzenie Chrome, popup 380×560 + strona opcji. Tokeny, typografia (Manrope) i mikrocopy wzięte wprost z <span style="color:#ECEDEF">uxSmartBuy.md</span> §7–8. Trzy warianty punktu wejścia: <a href="#1a" style="text-decoration:none;color:#7C95FF">1a</a> lista ofert (wg specyfikacji), <a href="#1b" style="text-decoration:none;color:#7C95FF">1b</a> wejście przez szukanie, <a href="#1c" style="text-decoration:none;color:#7C95FF">1c</a> kafle obserwacji. Pozostałe ekrany <a href="#1d" style="text-decoration:none;color:#7C95FF">1d</a>–<a href="#1h" style="text-decoration:none;color:#7C95FF">1h</a> są wspólne dla każdego wariantu.</p>
+
+  <div style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start">
+
+    <div id="1a" style="flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 Manrope,system-ui,sans-serif;color:#9BA1AB">
+        <a href="#1a" style="font:700 10.5px/1 ui-monospace,Menlo,monospace;padding:4px 7px;background:#1F2229;color:#ECEDEF;border-radius:5px;text-decoration:none">1a</a>
+        <span>Popup „Nowe” — lista ofert od razu</span>
+      </div>
+      <div style="width:380px;height:560px;background:#16181D;border:1px solid #2C3038;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;color:#ECEDEF">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 0">
+          <span style="display:flex;align-items:center;gap:9px">
+            <span style="width:16px;height:18px;flex:none;background:#F2C230;clip-path:polygon(62% 0%,16% 58%,44% 58%,36% 100%,84% 40%,54% 40%)"></span>
+            <span style="font:700 16px/22px Manrope,system-ui,sans-serif">Thunder Bait</span>
+          </span>
+          <span style="width:24px;height:24px;border-radius:8px;background:#1F2229;color:#9BA1AB;font:400 13px/24px Manrope,system-ui,sans-serif;text-align:center">⚙</span>
+        </div>
+        <div style="display:flex;gap:18px;padding:12px 16px 0">
+          <span style="font:700 13px/18px Manrope,system-ui,sans-serif;color:#ECEDEF;padding-bottom:9px;border-bottom:2px solid #F2C230">Nowe <span style="display:inline-block;min-width:16px;padding:0 5px;margin-left:4px;border-radius:999px;background:#F2C230;color:#16181D;font:700 11px/16px Manrope,system-ui,sans-serif;text-align:center">4</span></span>
+          <span style="font:400 13px/18px Manrope,system-ui,sans-serif;color:#9BA1AB;padding-bottom:9px;border-bottom:2px solid transparent">Obserwuję <span style="color:#646A75">3</span></span>
+        </div>
+        <div style="flex:1;border-top:1px solid #2C3038;overflow:hidden">
+          <sc-if value="{{ showQuickBanner }}" hint-placeholder-val="{{ true }}">
+            <div style="margin:12px 16px 4px;padding:10px 12px;border:1px dashed #2C3038;border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#1A1D23">
+              <span style="font:400 13px/18px Manrope,system-ui,sans-serif;color:#ECEDEF">Obserwuj to wyszukiwanie</span>
+              <span style="width:24px;height:24px;border-radius:8px;background:#7C95FF;color:#16181D;font:700 14px/24px Manrope,system-ui,sans-serif;text-align:center">+</span>
+            </div>
+          </sc-if>
+          <div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;padding:12px 16px 4px">Dziś</div>
+          <div style="display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:8px 16px;height:72px;box-sizing:border-box">
+            <div style="width:56px;height:56px;border-radius:6px;background:repeating-linear-gradient(135deg,#252932 0 6px,#1F2229 6px 12px)"></div>
+            <div style="min-width:0;display:flex;flex-direction:column;gap:2px">
+              <div style="display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:999px;background:#F2C230;flex:none"></span><span style="font:600 14px/20px Manrope,system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Leica M6 czarna</span></div>
+              <div style="display:flex;align-items:center;gap:6px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB"><span style="width:18px;height:18px;border-radius:999px;border:1px solid #2C3038;font:600 10px/16px Manrope,system-ui,sans-serif;display:inline-flex;align-items:center;justify-content:center;flex:none">O</span><span>Kraków · 12 min temu</span></div>
+              <div style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#646A75">Leica M6</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+              <span style="font:700 15px/20px Manrope,system-ui,sans-serif;font-variant-numeric:tabular-nums">4 200 zł</span>
+              <span style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">Ukryj</span>
+            </div>
+          </div>
+          <div style="height:1px;background:#2C3038;margin:0 16px"></div>
+          <div style="display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:8px 16px;height:72px;box-sizing:border-box">
+            <div style="width:56px;height:56px;border-radius:6px;background:repeating-linear-gradient(135deg,#252932 0 6px,#1F2229 6px 12px)"></div>
+            <div style="min-width:0;display:flex;flex-direction:column;gap:2px">
+              <div style="display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:999px;background:#F2C230;flex:none"></span><span style="font:600 14px/20px Manrope,system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Nikon 50 mm f/1.4 AI-S</span></div>
+              <div style="display:flex;align-items:center;gap:6px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB"><span style="width:18px;height:18px;border-radius:999px;border:1px solid #2C3038;font:600 10px/16px Manrope,system-ui,sans-serif;display:inline-flex;align-items:center;justify-content:center;flex:none">A</span><span>Wrocław · 40 min temu</span></div>
+              <div style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#646A75">Obiektywy manualne</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+              <span style="font:700 15px/20px Manrope,system-ui,sans-serif;font-variant-numeric:tabular-nums">680 zł</span>
+              <span style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">Ukryj</span>
+            </div>
+          </div>
+          <div style="height:1px;background:#2C3038;margin:0 16px"></div>
+          <div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;padding:12px 16px 4px">Wczoraj</div>
+          <div style="display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:8px 16px;height:72px;box-sizing:border-box">
+            <div style="width:56px;height:56px;border-radius:6px;background:repeating-linear-gradient(135deg,#252932 0 6px,#1F2229 6px 12px)"></div>
+            <div style="min-width:0;display:flex;flex-direction:column;gap:2px">
+              <span style="font:600 14px/20px Manrope,system-ui,sans-serif;color:#9BA1AB;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Mamiya RB67 korpus</span>
+              <div style="display:flex;align-items:center;gap:6px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB"><span style="width:18px;height:18px;border-radius:999px;border:1px solid #2C3038;font:600 10px/16px Manrope,system-ui,sans-serif;display:inline-flex;align-items:center;justify-content:center;flex:none">O</span><span>Gdynia · 21 wrz</span></div>
+              <div style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#646A75">Średni format</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+              <span style="font:700 15px/20px Manrope,system-ui,sans-serif;font-variant-numeric:tabular-nums;color:#9BA1AB">1 950 zł</span>
+              <span style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#646A75">Widziana</span>
+            </div>
+          </div>
+        </div>
+        <div style="border-top:1px solid #2C3038;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <span style="font:400 13px/18px Manrope,system-ui,sans-serif;color:#9BA1AB">Oznacz wszystkie jako widziane</span>
+          <span style="background:#7C95FF;color:#16181D;font:700 13px/18px Manrope,system-ui,sans-serif;padding:9px 14px;border-radius:8px">+ Obserwuj</span>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <p style="width:380px;margin:0;font:400 11px/1.55 Manrope,system-ui,sans-serif;color:#646A75;text-wrap:pretty">Cena to największy akcent wiersza, cyfry tabelaryczne, wyrównanie do prawej. Kropka <span style="color:#F2C230">●</span> = nowa oferta; trzecia linia to nazwa obserwacji. Badge zeruje dopiero klik w ofertę albo „Oznacz wszystkie jako widziane”.</p>
+      </sc-if>
+    </div>
+
+    <div id="1b" style="flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 Manrope,system-ui,sans-serif;color:#9BA1AB">
+        <a href="#1b" style="font:700 10.5px/1 ui-monospace,Menlo,monospace;padding:4px 7px;background:#1F2229;color:#ECEDEF;border-radius:5px;text-decoration:none">1b</a>
+        <span>Wejście przez szukanie (F3 na pierwszym planie)</span>
+      </div>
+      <div style="width:380px;height:560px;background:#16181D;border:1px solid #2C3038;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;color:#ECEDEF">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 0">
+          <span style="display:flex;align-items:center;gap:9px">
+            <span style="width:16px;height:18px;flex:none;background:#F2C230;clip-path:polygon(62% 0%,16% 58%,44% 58%,36% 100%,84% 40%,54% 40%)"></span>
+            <span style="font:700 16px/22px Manrope,system-ui,sans-serif">Thunder Bait</span>
+          </span>
+          <span style="width:24px;height:24px;border-radius:8px;background:#1F2229;color:#9BA1AB;font:400 13px/24px Manrope,system-ui,sans-serif;text-align:center">⚙</span>
+        </div>
+        <div style="padding:12px 16px 14px">
+          <div style="display:flex;align-items:center;gap:8px;background:#1F2229;border:1px solid #2C3038;border-radius:8px;padding:10px 12px">
+            <span style="color:#646A75;font:400 13px/18px Manrope,system-ui,sans-serif">⌕</span>
+            <span style="font:400 13px/18px Manrope,system-ui,sans-serif;color:#646A75">Czego szukasz? np. Leica M6</span>
+          </div>
+          <div style="margin-top:10px;padding:10px 12px;border:1px solid #7C95FF;border-radius:8px;background:#1A1D23">
+            <div style="font:600 13px/18px Manrope,system-ui,sans-serif;color:#ECEDEF">Obserwuj to wyszukiwanie</div>
+            <div style="margin-top:2px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">Jesteś na OLX: „leica m6”, do 5 000 zł, Kraków +50 km</div>
+            <div style="margin-top:10px;background:#7C95FF;color:#16181D;font:700 13px/18px Manrope,system-ui,sans-serif;padding:9px 14px;border-radius:8px;text-align:center">Zacznij obserwować</div>
+          </div>
+        </div>
+        <div style="flex:1;border-top:1px solid #2C3038;overflow:hidden">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;padding:12px 16px 4px">
+            <span style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">Nowe oferty <span style="color:#F2C230">4</span></span>
+            <span style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#646A75">Obserwuję 3</span>
+          </div>
+          <div style="display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:8px 16px;height:60px;box-sizing:border-box">
+            <div style="width:44px;height:44px;border-radius:6px;background:repeating-linear-gradient(135deg,#252932 0 6px,#1F2229 6px 12px)"></div>
+            <div style="min-width:0"><div style="display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:999px;background:#F2C230;flex:none"></span><span style="font:600 14px/20px Manrope,system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Leica M6 czarna</span></div><div style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">OLX · Kraków · 12 min temu</div></div>
+            <span style="font:700 15px/20px Manrope,system-ui,sans-serif;font-variant-numeric:tabular-nums">4 200 zł</span>
+          </div>
+          <div style="height:1px;background:#2C3038;margin:0 16px"></div>
+          <div style="display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:8px 16px;height:60px;box-sizing:border-box">
+            <div style="width:44px;height:44px;border-radius:6px;background:repeating-linear-gradient(135deg,#252932 0 6px,#1F2229 6px 12px)"></div>
+            <div style="min-width:0"><div style="display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:999px;background:#F2C230;flex:none"></span><span style="font:600 14px/20px Manrope,system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Nikon 50 mm f/1.4 AI-S</span></div><div style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">Allegro · Wrocław · 40 min temu</div></div>
+            <span style="font:700 15px/20px Manrope,system-ui,sans-serif;font-variant-numeric:tabular-nums">680 zł</span>
+          </div>
+          <div style="height:1px;background:#2C3038;margin:0 16px"></div>
+          <div style="display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:8px 16px;height:60px;box-sizing:border-box">
+            <div style="width:44px;height:44px;border-radius:6px;background:repeating-linear-gradient(135deg,#252932 0 6px,#1F2229 6px 12px)"></div>
+            <div style="min-width:0"><span style="font:600 14px/20px Manrope,system-ui,sans-serif;color:#9BA1AB">Mamiya RB67 korpus</span><div style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">OLX · Gdynia · 21 wrz</div></div>
+            <span style="font:700 15px/20px Manrope,system-ui,sans-serif;font-variant-numeric:tabular-nums;color:#9BA1AB">1 950 zł</span>
+          </div>
+        </div>
+        <div style="border-top:1px solid #2C3038;padding:12px 16px;text-align:center">
+          <span style="font:400 13px/18px Manrope,system-ui,sans-serif;color:#9BA1AB">Zobacz wszystkie oferty</span>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <p style="width:380px;margin:0;font:400 11px/1.55 Manrope,system-ui,sans-serif;color:#646A75;text-wrap:pretty">Ryzyko: łamie zasadę „popup = nowe oferty” (§1.1) i sugeruje wyszukiwarkę, której MVP nie ma. Warte testu tylko wtedy, gdy start z pustą watchlistą okaże się barierą.</p>
+      </sc-if>
+    </div>
+
+    <div id="1c" style="flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 Manrope,system-ui,sans-serif;color:#9BA1AB">
+        <a href="#1c" style="font:700 10.5px/1 ui-monospace,Menlo,monospace;padding:4px 7px;background:#1F2229;color:#ECEDEF;border-radius:5px;text-decoration:none">1c</a>
+        <span>Kafle obserwacji — oferty w drugim kroku</span>
+      </div>
+      <div style="width:380px;height:560px;background:#16181D;border:1px solid #2C3038;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;color:#ECEDEF">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 0">
+          <span style="display:flex;align-items:center;gap:9px">
+            <span style="width:16px;height:18px;flex:none;background:#F2C230;clip-path:polygon(62% 0%,16% 58%,44% 58%,36% 100%,84% 40%,54% 40%)"></span>
+            <span style="font:700 16px/22px Manrope,system-ui,sans-serif">Thunder Bait</span>
+          </span>
+          <span style="width:24px;height:24px;border-radius:8px;background:#1F2229;color:#9BA1AB;font:400 13px/24px Manrope,system-ui,sans-serif;text-align:center">⚙</span>
+        </div>
+        <div style="display:flex;gap:18px;padding:12px 16px 0">
+          <span style="font:400 13px/18px Manrope,system-ui,sans-serif;color:#9BA1AB;padding-bottom:9px;border-bottom:2px solid transparent">Nowe <span style="color:#F2C230">4</span></span>
+          <span style="font:700 13px/18px Manrope,system-ui,sans-serif;color:#ECEDEF;padding-bottom:9px;border-bottom:2px solid #F2C230">Obserwuję 3</span>
+        </div>
+        <div style="flex:1;border-top:1px solid #2C3038;padding:12px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden">
+          <div style="border:1px solid #2C3038;border-radius:12px;padding:12px;background:#1A1D23">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+              <span style="font:700 14px/20px Manrope,system-ui,sans-serif">Leica M6</span>
+              <span style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:16px;border-radius:999px;background:#7C95FF;position:relative;display:inline-block"><span style="position:absolute;top:2px;right:2px;width:12px;height:12px;border-radius:999px;background:#16181D"></span></span><span style="color:#646A75;font:700 13px/16px Manrope,system-ui,sans-serif">⋯</span></span>
+            </div>
+            <div style="margin-top:4px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">do 5 000 zł · O V A · co 15 min</div>
+            <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+              <span style="padding:3px 8px;border-radius:999px;background:#F2C230;color:#16181D;font:700 11px/16px Manrope,system-ui,sans-serif">2 nowe</span>
+              <span style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#646A75">sprawdzono 3 min temu</span>
+            </div>
+          </div>
+          <div style="border:1px solid #2C3038;border-radius:12px;padding:12px">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+              <span style="font:700 14px/20px Manrope,system-ui,sans-serif">Obiektywy manualne</span>
+              <span style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:16px;border-radius:999px;background:#7C95FF;position:relative;display:inline-block"><span style="position:absolute;top:2px;right:2px;width:12px;height:12px;border-radius:999px;background:#16181D"></span></span><span style="color:#646A75;font:700 13px/16px Manrope,system-ui,sans-serif">⋯</span></span>
+            </div>
+            <div style="margin-top:4px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">do 900 zł · A · co 1 h</div>
+            <div style="margin-top:8px;display:flex;align-items:center;gap:6px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#E0A13A"><span>⚠</span><span>Vinted: problem z pobieraniem</span></div>
+          </div>
+          <div style="border:1px solid #2C3038;border-radius:12px;padding:12px;opacity:.6">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+              <span style="font:700 14px/20px Manrope,system-ui,sans-serif">Średni format</span>
+              <span style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:16px;border-radius:999px;background:#2C3038;position:relative;display:inline-block"><span style="position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:999px;background:#646A75"></span></span><span style="color:#646A75;font:700 13px/16px Manrope,system-ui,sans-serif">⋯</span></span>
+            </div>
+            <div style="margin-top:4px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">Wstrzymana</div>
+          </div>
+        </div>
+        <div style="border-top:1px solid #2C3038;padding:12px 16px;text-align:right">
+          <span style="background:#7C95FF;color:#16181D;font:700 13px/18px Manrope,system-ui,sans-serif;padding:9px 14px;border-radius:8px">+ Obserwuj</span>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <p style="width:380px;margin:0;font:400 11px/1.55 Manrope,system-ui,sans-serif;color:#646A75;text-wrap:pretty">Ten sam ekran co „Obserwuję” w <a href="#1a" style="text-decoration:none;color:#7C95FF">1a</a>, ale jako domyślny. Czytelny przy 3–6 obserwacjach; przy 20 (limit) kafle są za wysokie — wtedy wracamy do wierszy.</p>
+      </sc-if>
+    </div>
+
+    <div id="1d" style="flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 Manrope,system-ui,sans-serif;color:#9BA1AB">
+        <a href="#1d" style="font:700 10.5px/1 ui-monospace,Menlo,monospace;padding:4px 7px;background:#1F2229;color:#ECEDEF;border-radius:5px;text-decoration:none">1d</a>
+        <span>Formularz „Nowa obserwacja”</span>
+      </div>
+      <div style="width:380px;height:560px;background:#16181D;border:1px solid #2C3038;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;color:#ECEDEF">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px 12px;border-bottom:1px solid #2C3038">
+          <span style="color:#9BA1AB;font:400 14px/20px Manrope,system-ui,sans-serif">←</span>
+          <span style="width:16px;height:18px;flex:none;background:#F2C230;clip-path:polygon(62% 0%,16% 58%,44% 58%,36% 100%,84% 40%,54% 40%)"></span>
+          <span style="font:700 16px/22px Manrope,system-ui,sans-serif">Nowa obserwacja</span>
+        </div>
+        <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;overflow:hidden">
+          <div>
+            <div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;margin-bottom:6px">Czego szukasz?</div>
+            <div style="background:#1F2229;border:1px solid #7C95FF;border-radius:8px;padding:10px 12px;font:400 13px/18px Manrope,system-ui,sans-serif">Leica M6</div>
+            <div style="margin-top:8px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#646A75">Warianty nazwy (opcjonalnie)</div>
+            <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px">
+              <span style="padding:4px 10px;border-radius:999px;background:#1F2229;border:1px solid #2C3038;font:400 12px/16px Manrope,system-ui,sans-serif">Leica M6 <span style="color:#646A75">×</span></span>
+              <span style="padding:4px 10px;border-radius:999px;background:#1F2229;border:1px solid #2C3038;font:400 12px/16px Manrope,system-ui,sans-serif">M6 TTL <span style="color:#646A75">×</span></span>
+              <span style="padding:4px 10px;border-radius:999px;border:1px dashed #2C3038;font:400 12px/16px Manrope,system-ui,sans-serif;color:#646A75">+ dodaj</span>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;margin-bottom:6px">Cena maks.</div>
+              <div style="background:#1F2229;border:1px solid #2C3038;border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;font:400 13px/18px Manrope,system-ui,sans-serif"><span>5000</span><span style="color:#646A75">zł</span></div>
+            </div>
+            <div>
+              <div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;margin-bottom:6px">Gdzie szukać</div>
+              <div style="display:flex;gap:6px">
+                <span style="flex:1;text-align:center;padding:9px 0;border-radius:8px;background:#1F2229;border:1px solid #7C95FF;font:600 12px/16px Manrope,system-ui,sans-serif">OLX</span>
+                <span style="flex:1;text-align:center;padding:9px 0;border-radius:8px;background:#1F2229;border:1px solid #7C95FF;font:600 12px/16px Manrope,system-ui,sans-serif">Vin</span>
+                <span style="flex:1;text-align:center;padding:9px 0;border-radius:8px;background:#1F2229;border:1px solid #7C95FF;font:600 12px/16px Manrope,system-ui,sans-serif">All</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;margin-bottom:6px">Sprawdzaj co</div>
+            <div style="display:flex;background:#1F2229;border:1px solid #2C3038;border-radius:8px;padding:3px;gap:3px">
+              <span style="flex:1;text-align:center;padding:7px 0;border-radius:6px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">5 min</span>
+              <span style="flex:1;text-align:center;padding:7px 0;border-radius:6px;background:#2C3038;font:700 12px/16px Manrope,system-ui,sans-serif">15 min</span>
+              <span style="flex:1;text-align:center;padding:7px 0;border-radius:6px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">1 h</span>
+              <span style="flex:1;text-align:center;padding:7px 0;border-radius:6px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">6 h</span>
+            </div>
+          </div>
+          <div>
+            <div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;margin-bottom:6px">Powiadamiaj</div>
+            <div style="display:flex;align-items:center;gap:8px;font:400 13px/18px Manrope,system-ui,sans-serif"><span style="width:16px;height:16px;border-radius:4px;background:#7C95FF;color:#16181D;font:700 11px/16px Manrope,system-ui,sans-serif;text-align:center">✓</span><span>w przeglądarce</span></div>
+            <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+              <span style="font:400 13px/18px Manrope,system-ui,sans-serif;color:#9BA1AB">E-mail:</span>
+              <span style="flex:1;background:#1F2229;border:1px solid #2C3038;border-radius:8px;padding:8px 10px;display:flex;justify-content:space-between;font:400 13px/18px Manrope,system-ui,sans-serif;color:#646A75"><span>Natychmiast</span><span>▾</span></span>
+            </div>
+            <div style="margin-top:6px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#646A75">Adres niezweryfikowany. <span style="color:#7C95FF">Dodaj e-mail</span></div>
+          </div>
+          <div>
+            <div style="font:400 13px/18px Manrope,system-ui,sans-serif;color:#9BA1AB">▸ Więcej filtrów</div>
+            <div style="font:400 11px/15px Manrope,system-ui,sans-serif;color:#646A75">cena min. · wyklucz słowa · lokalizacja · stan · rozmiar</div>
+          </div>
+        </div>
+        <div style="border-top:1px solid #2C3038;padding:12px 16px">
+          <div style="background:#7C95FF;color:#16181D;font:700 13px/18px Manrope,system-ui,sans-serif;padding:11px 14px;border-radius:8px;text-align:center">Zacznij obserwować</div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <p style="width:380px;margin:0;font:400 11px/1.55 Manrope,system-ui,sans-serif;color:#646A75;text-wrap:pretty">Dwa wymagane pola, reszta z domyślnymi (§3.1) → dodanie w ≤ 3 interakcjach: nazwa → Enter → gotowe. Przycisk główny przyklejony do dołu, aktywny od pierwszego znaku.</p>
+      </sc-if>
+    </div>
+
+    <div id="1e" style="flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 Manrope,system-ui,sans-serif;color:#9BA1AB">
+        <a href="#1e" style="font:700 10.5px/1 ui-monospace,Menlo,monospace;padding:4px 7px;background:#1F2229;color:#ECEDEF;border-radius:5px;text-decoration:none">1e</a>
+        <span>Onboarding — strona opcji, pierwsze uruchomienie</span>
+      </div>
+      <div style="width:900px;height:520px;background:#16181D;border:1px solid #2C3038;border-radius:12px;overflow:hidden;color:#ECEDEF;display:flex;align-items:center;justify-content:center;padding:40px;box-sizing:border-box">
+        <div style="max-width:480px;display:flex;flex-direction:column;gap:20px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="width:24px;height:28px;flex:none;background:#F2C230;clip-path:polygon(62% 0%,16% 58%,44% 58%,36% 100%,84% 40%,54% 40%)"></span>
+            <span style="font:700 16px/22px Manrope,system-ui,sans-serif">Thunder Bait</span>
+          </div>
+          <p style="margin:0;font:600 20px/28px Manrope,system-ui,sans-serif;text-wrap:pretty">Thunder Bait sprawdza OLX, Vinted i Allegro za Ciebie i daje znać, gdy pojawi się pasująca oferta.</p>
+          <div>
+            <div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;margin-bottom:6px">E-mail (opcjonalnie)</div>
+            <div style="display:flex;gap:8px">
+              <span style="flex:1;background:#1F2229;border:1px solid #2C3038;border-radius:8px;padding:10px 12px;font:400 13px/18px Manrope,system-ui,sans-serif;color:#646A75">ty@example.com</span>
+              <span style="padding:10px 14px;border-radius:8px;border:1px solid #2C3038;font:600 13px/18px Manrope,system-ui,sans-serif;color:#ECEDEF">Zapisz</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <span style="background:#7C95FF;color:#16181D;font:700 13px/18px Manrope,system-ui,sans-serif;padding:11px 16px;border-radius:8px">Dodaj pierwszą obserwację</span>
+            <span style="font:400 13px/18px Manrope,system-ui,sans-serif;color:#9BA1AB">Pomiń</span>
+          </div>
+          <p style="margin:0;font:400 12px/16px Manrope,system-ui,sans-serif;color:#646A75">O zgodę na powiadomienia zapytamy po zapisaniu pierwszej obserwacji.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="1f" style="flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 Manrope,system-ui,sans-serif;color:#9BA1AB">
+        <a href="#1f" style="font:700 10.5px/1 ui-monospace,Menlo,monospace;padding:4px 7px;background:#1F2229;color:#ECEDEF;border-radius:5px;text-decoration:none">1f</a>
+        <span>Strona opcji — szczegóły obserwacji</span>
+      </div>
+      <div style="width:900px;height:560px;background:#16181D;border:1px solid #2C3038;border-radius:12px;overflow:hidden;color:#ECEDEF;display:grid;grid-template-columns:200px 1fr">
+        <div style="border-right:1px solid #2C3038;padding:16px;display:flex;flex-direction:column;gap:16px">
+          <span style="display:flex;align-items:center;gap:9px">
+            <span style="width:16px;height:18px;flex:none;background:#F2C230;clip-path:polygon(62% 0%,16% 58%,44% 58%,36% 100%,84% 40%,54% 40%)"></span>
+            <span style="font:700 16px/22px Manrope,system-ui,sans-serif">Thunder Bait</span>
+          </span>
+          <div style="display:flex;flex-direction:column;gap:2px;font:400 13px/18px Manrope,system-ui,sans-serif">
+            <span style="padding:8px 10px;border-radius:8px;background:#1F2229;font-weight:700">Obserwacje</span>
+            <span style="padding:8px 10px;color:#9BA1AB">Oferty</span>
+            <span style="padding:8px 10px;color:#9BA1AB">Ustawienia</span>
+          </div>
+          <div style="height:1px;background:#2C3038"></div>
+          <div>
+            <div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#646A75;margin-bottom:8px">Serwisy</div>
+            <div style="display:flex;flex-direction:column;gap:6px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">
+              <span style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:999px;background:#7C95FF"></span>OLX — działa</span>
+              <span style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:999px;background:#E0A13A"></span>Vinted — problem</span>
+              <span style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:999px;background:#7C95FF"></span>Allegro — działa</span>
+            </div>
+          </div>
+        </div>
+        <div style="padding:20px 24px;display:flex;flex-direction:column;gap:16px;overflow:hidden">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+            <div>
+              <div style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#646A75">Obserwacje /</div>
+              <div style="font:700 20px/28px Manrope,system-ui,sans-serif">Leica M6</div>
+              <div style="margin-top:4px;font:400 13px/18px Manrope,system-ui,sans-serif;color:#9BA1AB">Leica M6 do 5 000 zł, OLX i Allegro, co 15 min · sprawdzono 3 min temu</div>
+            </div>
+            <div style="display:flex;gap:8px;flex:none">
+              <span style="padding:9px 14px;border-radius:8px;border:1px solid #2C3038;font:600 13px/18px Manrope,system-ui,sans-serif">Edytuj</span>
+              <span style="padding:9px 14px;border-radius:8px;border:1px solid #2C3038;font:600 13px/18px Manrope,system-ui,sans-serif">Sprawdź teraz</span>
+              <span style="padding:9px 14px;border-radius:8px;border:1px solid #2C3038;font:600 13px/18px Manrope,system-ui,sans-serif;color:#9BA1AB">Wstrzymaj</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:#1F2229;border:1px solid #2C3038;font:400 13px/18px Manrope,system-ui,sans-serif;color:#E0A13A">⚠ <span style="color:#ECEDEF">Vinted: problem z pobieraniem. OLX i Allegro działają normalnie.</span></div>
+          <div style="display:flex;gap:8px;font:400 12px/16px Manrope,system-ui,sans-serif">
+            <span style="padding:5px 10px;border-radius:999px;background:#2C3038;font-weight:700">Nowe 2</span>
+            <span style="padding:5px 10px;border-radius:999px;border:1px solid #2C3038;color:#9BA1AB">Widziane</span>
+            <span style="padding:5px 10px;border-radius:999px;border:1px solid #2C3038;color:#9BA1AB">Ukryte</span>
+          </div>
+          <div style="flex:1;border:1px solid #2C3038;border-radius:12px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:56px 1fr 120px 100px 72px;gap:16px;align-items:center;padding:12px 16px;height:72px;box-sizing:border-box">
+              <div style="width:56px;height:56px;border-radius:6px;background:repeating-linear-gradient(135deg,#252932 0 6px,#1F2229 6px 12px)"></div>
+              <div><div style="display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:999px;background:#F2C230"></span><span style="font:600 14px/20px Manrope,system-ui,sans-serif">Leica M6 czarna, stan bardzo dobry</span></div><div style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">OLX · Kraków · 12 min temu</div></div>
+              <span style="font:700 15px/20px Manrope,system-ui,sans-serif;font-variant-numeric:tabular-nums;text-align:right">4 200 zł</span>
+              <span style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;text-align:right">Nowa</span>
+              <span style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;text-align:right">Ukryj</span>
+            </div>
+            <div style="height:1px;background:#2C3038"></div>
+            <div style="display:grid;grid-template-columns:56px 1fr 120px 100px 72px;gap:16px;align-items:center;padding:12px 16px;height:72px;box-sizing:border-box">
+              <div style="width:56px;height:56px;border-radius:6px;background:repeating-linear-gradient(135deg,#252932 0 6px,#1F2229 6px 12px)"></div>
+              <div><div style="display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:999px;background:#F2C230"></span><span style="font:600 14px/20px Manrope,system-ui,sans-serif">Leica M6 TTL 0.72 + pasek</span></div><div style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">Allegro · Warszawa · 2 h temu</div></div>
+              <span style="font:700 15px/20px Manrope,system-ui,sans-serif;font-variant-numeric:tabular-nums;text-align:right">4 890 zł</span>
+              <span style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;text-align:right">Nowa</span>
+              <span style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;text-align:right">Ukryj</span>
+            </div>
+            <div style="height:1px;background:#2C3038"></div>
+            <div style="display:grid;grid-template-columns:56px 1fr 120px 100px 72px;gap:16px;align-items:center;padding:12px 16px;height:72px;box-sizing:border-box;opacity:.65">
+              <div style="width:56px;height:56px;border-radius:6px;background:repeating-linear-gradient(135deg,#252932 0 6px,#1F2229 6px 12px)"></div>
+              <div><span style="font:600 14px/20px Manrope,system-ui,sans-serif">Leica M6 srebrna, komis</span><div style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">OLX · Poznań · 21 wrz</div></div>
+              <span style="font:700 15px/20px Manrope,system-ui,sans-serif;font-variant-numeric:tabular-nums;text-align:right">5 400 zł</span>
+              <span style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;text-align:right">Widziana</span>
+              <span style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;text-align:right">Ukryj</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <sc-if value="{{ showAnnotations }}" hint-placeholder-val="{{ true }}">
+        <p style="width:900px;margin:0;font:400 11px/1.55 Manrope,system-ui,sans-serif;color:#646A75;text-wrap:pretty">Filtry obserwacji pokazane jako zdanie, nie jako tabela pól (§5.4). Status serwisu zawsze kropka + tekst, nigdy sam kolor (§9).</p>
+      </sc-if>
+    </div>
+
+    <div id="1g" style="flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 Manrope,system-ui,sans-serif;color:#9BA1AB">
+        <a href="#1g" style="font:700 10.5px/1 ui-monospace,Menlo,monospace;padding:4px 7px;background:#1F2229;color:#ECEDEF;border-radius:5px;text-decoration:none">1g</a>
+        <span>Strona opcji — ustawienia</span>
+      </div>
+      <div style="width:900px;height:560px;background:#16181D;border:1px solid #2C3038;border-radius:12px;overflow:hidden;color:#ECEDEF;display:grid;grid-template-columns:200px 1fr">
+        <div style="border-right:1px solid #2C3038;padding:16px;display:flex;flex-direction:column;gap:16px">
+          <span style="display:flex;align-items:center;gap:9px">
+            <span style="width:16px;height:18px;flex:none;background:#F2C230;clip-path:polygon(62% 0%,16% 58%,44% 58%,36% 100%,84% 40%,54% 40%)"></span>
+            <span style="font:700 16px/22px Manrope,system-ui,sans-serif">Thunder Bait</span>
+          </span>
+          <div style="display:flex;flex-direction:column;gap:2px;font:400 13px/18px Manrope,system-ui,sans-serif">
+            <span style="padding:8px 10px;color:#9BA1AB">Obserwacje</span>
+            <span style="padding:8px 10px;color:#9BA1AB">Oferty</span>
+            <span style="padding:8px 10px;border-radius:8px;background:#1F2229;font-weight:700">Ustawienia</span>
+          </div>
+        </div>
+        <div style="padding:20px 24px;display:flex;flex-direction:column;gap:18px;overflow:hidden">
+          <span style="font:700 20px/28px Manrope,system-ui,sans-serif">Ustawienia</span>
+          <div style="border:1px solid #2C3038;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px">
+            <span style="font:700 14px/20px Manrope,system-ui,sans-serif">E-mail</span>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <span style="background:#1F2229;border:1px solid #2C3038;border-radius:8px;padding:9px 12px;font:400 13px/18px Manrope,system-ui,sans-serif;min-width:240px">foto@example.com</span>
+              <span style="display:flex;align-items:center;gap:6px;font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB"><span style="width:8px;height:8px;border-radius:999px;background:#7C95FF"></span>Zweryfikowany</span>
+              <span style="padding:9px 14px;border-radius:8px;border:1px solid #2C3038;font:600 13px/18px Manrope,system-ui,sans-serif">Wyślij testowy e-mail</span>
+            </div>
+          </div>
+          <div style="border:1px solid #2C3038;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px">
+            <span style="font:700 14px/20px Manrope,system-ui,sans-serif">Domyślne wartości nowej obserwacji</span>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+              <div><div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;margin-bottom:6px">Sprawdzaj co</div><div style="background:#1F2229;border:1px solid #2C3038;border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;font:400 13px/18px Manrope,system-ui,sans-serif"><span>15 min</span><span style="color:#646A75">▾</span></div></div>
+              <div><div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;margin-bottom:6px">E-mail</div><div style="background:#1F2229;border:1px solid #2C3038;border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;font:400 13px/18px Manrope,system-ui,sans-serif"><span>Raz dziennie</span><span style="color:#646A75">▾</span></div></div>
+              <div><div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB;margin-bottom:6px">Godzina zestawienia</div><div style="background:#1F2229;border:1px solid #2C3038;border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;font:400 13px/18px Manrope,system-ui,sans-serif"><span>8:00</span><span style="color:#646A75">▾</span></div></div>
+            </div>
+          </div>
+          <div style="border:1px solid #2C3038;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px">
+            <span style="font:700 14px/20px Manrope,system-ui,sans-serif">Serwisy</span>
+            <div style="display:flex;flex-direction:column;gap:8px;font:400 13px/18px Manrope,system-ui,sans-serif;color:#9BA1AB">
+              <span style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:999px;background:#7C95FF"></span><span style="color:#ECEDEF;min-width:64px">OLX</span>działa · ostatnie udane sprawdzenie 3 min temu · 0 błędów</span>
+              <span style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:999px;background:#E0A13A"></span><span style="color:#ECEDEF;min-width:64px">Vinted</span>problem z pobieraniem od 14:10 · 6 błędów z rzędu</span>
+              <span style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:999px;background:#7C95FF"></span><span style="color:#ECEDEF;min-width:64px">Allegro</span>działa · ostatnie udane sprawdzenie 8 min temu · 0 błędów</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid #2C3038;border-radius:12px;padding:16px">
+            <div><div style="font:700 14px/20px Manrope,system-ui,sans-serif">Dane</div><div style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">Usuwa obserwacje, oferty i ustawienia z tej przeglądarki.</div></div>
+            <span style="padding:9px 14px;border-radius:8px;border:1px solid #F07167;color:#F07167;font:600 13px/18px Manrope,system-ui,sans-serif;flex:none">Usuń wszystkie dane</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="1h" style="flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px">
+      <div style="display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 Manrope,system-ui,sans-serif;color:#9BA1AB">
+        <a href="#1h" style="font:700 10.5px/1 ui-monospace,Menlo,monospace;padding:4px 7px;background:#1F2229;color:#ECEDEF;border-radius:5px;text-decoration:none">1h</a>
+        <span>Stany popupu (§6) + powiadomienie (§5.5)</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:20px;max-width:1200px">
+        <div style="width:380px;height:260px;background:#16181D;border:1px solid #2C3038;border-radius:12px;padding:16px;box-sizing:border-box;color:#ECEDEF;display:flex;flex-direction:column">
+          <div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#646A75;margin-bottom:12px">Brak obserwacji</div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center">
+            <span style="width:40px;height:40px;border-radius:12px;border:1px dashed #2C3038"></span>
+            <span style="font:400 13px/18px Manrope,system-ui,sans-serif;color:#9BA1AB">Nie obserwujesz jeszcze niczego.</span>
+            <span style="background:#7C95FF;color:#16181D;font:700 13px/18px Manrope,system-ui,sans-serif;padding:9px 14px;border-radius:8px">Dodaj pierwszą obserwację</span>
+          </div>
+        </div>
+        <div style="width:380px;height:260px;background:#16181D;border:1px solid #2C3038;border-radius:12px;padding:16px;box-sizing:border-box;color:#ECEDEF;display:flex;flex-direction:column">
+          <div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#646A75;margin-bottom:12px">Brak nowych ofert</div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center">
+            <span style="font:400 13px/18px Manrope,system-ui,sans-serif">Nic nowego. Ostatnie sprawdzenie: 3 min temu.</span>
+            <span style="font:400 13px/18px Manrope,system-ui,sans-serif;color:#7C95FF">Zobacz wcześniejsze oferty</span>
+          </div>
+        </div>
+        <div style="width:380px;height:260px;background:#16181D;border:1px solid #2C3038;border-radius:12px;padding:16px;box-sizing:border-box;color:#ECEDEF;display:flex;flex-direction:column;gap:10px">
+          <div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#646A75">Pierwsze sprawdzenie w toku</div>
+          <div style="font:400 13px/18px Manrope,system-ui,sans-serif;color:#9BA1AB">Sprawdzam OLX, Vinted i Allegro…</div>
+          <div style="display:flex;align-items:center;gap:12px"><span style="width:56px;height:56px;border-radius:6px;background:#1F2229"></span><span style="flex:1;display:flex;flex-direction:column;gap:6px"><span style="height:12px;border-radius:4px;background:#1F2229;width:70%"></span><span style="height:10px;border-radius:4px;background:#1F2229;width:45%"></span></span></div>
+          <div style="display:flex;align-items:center;gap:12px"><span style="width:56px;height:56px;border-radius:6px;background:#1F2229"></span><span style="flex:1;display:flex;flex-direction:column;gap:6px"><span style="height:12px;border-radius:4px;background:#1F2229;width:55%"></span><span style="height:10px;border-radius:4px;background:#1F2229;width:38%"></span></span></div>
+        </div>
+        <div style="width:380px;height:260px;background:#16181D;border:1px solid #2C3038;border-radius:12px;padding:16px;box-sizing:border-box;color:#ECEDEF;display:flex;flex-direction:column;gap:10px">
+          <div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#646A75">Paski systemowe</div>
+          <div style="padding:9px 12px;border-radius:8px;background:#1F2229;border:1px solid #2C3038;font:400 12px/16px Manrope,system-ui,sans-serif">Brak internetu. Sprawdzanie wznowi się automatycznie.</div>
+          <div style="padding:9px 12px;border-radius:8px;background:#1F2229;border:1px solid #2C3038;display:flex;align-items:center;justify-content:space-between;gap:8px;font:400 12px/16px Manrope,system-ui,sans-serif">Powiadomienia są wyłączone w przeglądarce. <span style="color:#7C95FF;font-weight:700;flex:none">Włącz</span></div>
+          <div style="padding:9px 12px;border-radius:8px;background:#1F2229;border:1px solid #2C3038;font:400 12px/16px Manrope,system-ui,sans-serif;color:#E0A13A">⚠ <span style="color:#ECEDEF">Vinted: problem z pobieraniem. Inne serwisy działają.</span></div>
+          <div style="padding:9px 12px;border-radius:8px;background:#1F2229;border:1px solid #2C3038;font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">Masz już 20 obserwacji. Usuń lub wstrzymaj jedną, żeby dodać nową.</div>
+        </div>
+        <div style="width:380px;height:260px;background:#16181D;border:1px solid #2C3038;border-radius:12px;padding:16px;box-sizing:border-box;color:#ECEDEF;display:flex;flex-direction:column;gap:12px">
+          <div style="font:600 12px/16px Manrope,system-ui,sans-serif;color:#646A75">Powiadomienie i toast</div>
+          <div style="border:1px solid #2C3038;border-radius:8px;padding:12px;display:flex;gap:12px;background:#1F2229">
+            <span style="width:40px;height:40px;border-radius:6px;background:repeating-linear-gradient(135deg,#252932 0 6px,#1F2229 6px 12px);flex:none"></span>
+            <div style="min-width:0">
+              <div style="font:700 13px/18px Manrope,system-ui,sans-serif;font-variant-numeric:tabular-nums">4 200 zł · Leica M6 czarna</div>
+              <div style="font:400 12px/16px Manrope,system-ui,sans-serif;color:#9BA1AB">OLX · Kraków — z obserwacji „Leica M6”</div>
+              <div style="margin-top:8px;display:flex;gap:8px;font:600 12px/16px Manrope,system-ui,sans-serif"><span style="padding:5px 10px;border-radius:6px;border:1px solid #2C3038">Otwórz</span><span style="padding:5px 10px;border-radius:6px;border:1px solid #2C3038;color:#9BA1AB">Ukryj</span></div>
+            </div>
+          </div>
+          <div style="border:1px solid #2C3038;border-radius:8px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#1F2229;font:400 13px/18px Manrope,system-ui,sans-serif">Wstrzymano: Leica M6 <span style="color:#7C95FF;font-weight:700">Cofnij</span></div>
+          <div style="font:400 11px/1.5 Manrope,system-ui,sans-serif;color:#646A75">Kilka ofert z jednego sprawdzenia → jedno zbiorcze: „5 nowych ofert · Leica M6”.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p style="margin:26px 0 0;font:400 12px/1.5 Manrope,system-ui,sans-serif;color:#646A75">Spróbuj dalej: „zostawmy <a href="#1a" style="text-decoration:none;color:#7C95FF">1a</a>, ale kafle z <a href="#1c" style="text-decoration:none;color:#7C95FF">1c</a> w zakładce Obserwuję” · „dodaj widok Oferty ze strony opcji” · „pokaż to samo w motywie jasnym”</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showQuickBanner&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Wireframe&quot;},&quot;showAnnotations&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Wireframe&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      showQuickBanner: this.props.showQuickBanner ?? true,
+      showAnnotations: this.props.showAnnotations ?? true
+    };
+  }
+}
+</script>
+</body>
+</html>
