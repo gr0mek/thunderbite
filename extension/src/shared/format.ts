@@ -1,4 +1,5 @@
 import { copy } from "./copy.pl";
+import type { SiteId } from "@/adapters/types";
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -38,4 +39,12 @@ export function formatDayLabel(iso: string, now = Date.now()): string {
   if (day === today) return "Dziś";
   if (today - day === 24 * 60 * 60 * 1000) return "Wczoraj";
   return new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "short" }).format(day);
+}
+
+/** "OLX i Allegro" / "OLX, Vinted i Allegro" — the watch-detail filter
+ * sentence's site list (uxSmartBuy.md §5.4). */
+export function formatSiteList(sites: SiteId[]): string {
+  const names = sites.map((s) => copy.siteNames[s]);
+  if (names.length <= 1) return names.join("");
+  return `${names.slice(0, -1).join(", ")} i ${names.at(-1)}`;
 }

@@ -20,6 +20,12 @@ export const copy = {
     seenLabel: "Widziana",
   },
 
+  offerState: {
+    new: "Nowa",
+    seen: "Widziana",
+    hidden: "Ukryta",
+  },
+
   popupFooter: {
     markAllSeen: "Oznacz wszystkie jako widziane",
     addWatch: "+ Obserwuj",
@@ -103,6 +109,22 @@ export const copy = {
     watches: "Obserwacje",
     offers: "Oferty",
     settings: "Ustawienia",
+  },
+
+  watchesTable: {
+    name: "Nazwa",
+    sites: "Serwisy",
+    priceMax: "Cena maks.",
+    interval: "Co ile",
+    newOffers: "Nowe",
+    lastChecked: "Ostatnie sprawdzenie",
+    status: "Status",
+  },
+
+  watchStatus: {
+    active: "Aktywna",
+    paused: "Wstrzymana",
+    problem: "Problem",
   },
 
   watchDetail: {

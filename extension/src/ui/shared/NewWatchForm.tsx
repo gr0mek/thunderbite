@@ -126,8 +126,8 @@ export function NewWatchForm({ watch, settings, onDone, onCancel }: NewWatchForm
   }
 
   return (
-    <form class="col popup-form" onSubmit={handleSubmit}>
-      <div class="fx ac gap2 popup-form-header">
+    <form class="col form-panel" onSubmit={handleSubmit}>
+      <div class="fx ac gap2 form-panel-header">
         <button
           type="button"
           class="icon-btn"
@@ -143,7 +143,7 @@ export function NewWatchForm({ watch, settings, onDone, onCancel }: NewWatchForm
         </span>
       </div>
 
-      <div class="col gap3 popup-form-body">
+      <div class="col gap3 form-panel-body">
         <Field label={copy.form.nameLabel}>
           <input
             class="text-field text-field--active"
@@ -322,7 +322,7 @@ export function NewWatchForm({ watch, settings, onDone, onCancel }: NewWatchForm
         )}
       </div>
 
-      <div class="popup-form-footer">
+      <div class="form-panel-footer">
         <button type="submit" class="btn btn-primary btn-block" disabled={!canSubmit}>
           {isEdit ? copy.form.submitEdit : copy.form.submitNew}
         </button>

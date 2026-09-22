@@ -8,7 +8,7 @@ import { TopBar } from "./components/TopBar";
 import { Tabs } from "./components/Tabs";
 import { NewOffersScreen } from "./screens/NewOffersScreen";
 import { WatchingScreen } from "./screens/WatchingScreen";
-import { NewWatchForm } from "./screens/NewWatchForm";
+import { NewWatchForm } from "@/ui/shared/NewWatchForm";
 
 type Screen = { kind: "tabs" } | { kind: "form"; watch?: Watch };
 
