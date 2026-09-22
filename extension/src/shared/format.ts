@@ -22,3 +22,20 @@ export function formatRelativeTime(iso: string, now = Date.now()): string {
 export function formatPrice(price: number | null): string {
   return price === null ? "—" : copy.price.format(price);
 }
+
+function startOfDay(ms: number): number {
+  const d = new Date(ms);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+/** Day-group header for offer lists (uxSmartBuy.md §5.1: "Dziś" / "Wczoraj"
+ * / an absolute date) — distinct from formatRelativeTime, which labels an
+ * individual row. */
+export function formatDayLabel(iso: string, now = Date.now()): string {
+  const day = startOfDay(new Date(iso).getTime());
+  const today = startOfDay(now);
+  if (day === today) return "Dziś";
+  if (today - day === 24 * 60 * 60 * 1000) return "Wczoraj";
+  return new Intl.DateTimeFormat("pl-PL", { day: "numeric", month: "short" }).format(day);
+}

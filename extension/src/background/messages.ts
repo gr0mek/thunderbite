@@ -8,6 +8,7 @@ import type { Watch } from "@/shared/schemas";
 
 export type BackgroundRequest =
   | { type: "watch/create"; input: unknown }
+  | { type: "watch/update"; watchId: string; patch: Partial<Watch> }
   | { type: "watch/checkNow"; watchId: string }
   | { type: "watch/pause"; watchId: string }
   | { type: "watch/resume"; watchId: string }
@@ -35,6 +36,8 @@ export function sendToBackground<T = unknown>(request: BackgroundRequest): Promi
 
 export const createWatch = (input: unknown) =>
   sendToBackground<Watch>({ type: "watch/create", input });
+export const updateWatch = (watchId: string, patch: Partial<Watch>) =>
+  sendToBackground<Watch>({ type: "watch/update", watchId, patch });
 export const checkWatchNow = (watchId: string) =>
   sendToBackground<void>({ type: "watch/checkNow", watchId });
 export const pauseWatch = (watchId: string) =>

@@ -13,7 +13,9 @@ export const OFFER_RETENTION_DAYS = 30;
 export const DEFAULT_DIGEST_HOUR = "08:00";
 
 export const ConditionSchema = z.enum(["new", "used", "any"]);
+export type Condition = z.infer<typeof ConditionSchema>;
 export const EmailModeSchema = z.enum(["immediate", "daily", "off"]);
+export type EmailMode = z.infer<typeof EmailModeSchema>;
 export const AdapterHealthSchema = z.enum(["ok", "degraded", "broken"]);
 export const OfferStateSchema = z.enum(["new", "seen", "hidden"]);
 

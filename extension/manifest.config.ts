@@ -14,7 +14,10 @@ export default defineManifest({
   description:
     "Automatycznie sprawdza OLX, Vinted i Allegro i powiadamia o nowych, pasujących ofertach.",
   version: pkg.version,
-  default_locale: "pl",
+  // No default_locale: nothing here uses chrome.i18n — every string is
+  // hardcoded Polish via shared/copy.pl.ts (uxSmartBuy.md §10 DoD). Setting
+  // default_locale without a matching _locales/<locale>/messages.json makes
+  // Chrome treat the whole extension as invalid and refuse to load it.
   icons: {
     16: "src/assets/icon-16.png",
     32: "src/assets/icon-32.png",

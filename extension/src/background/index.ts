@@ -9,6 +9,7 @@ import type { SiteAdapter, SiteId } from "@/adapters/types";
 import { checkWatch } from "@/core/checkWatch";
 import {
   createWatchAndRunBaseline,
+  updateWatchAndReschedule,
   checkWatchNow as runCheckWatchNow,
   pauseWatch as runPauseWatch,
   resumeWatch as runResumeWatch,
@@ -115,6 +116,8 @@ async function handleMessage(request: BackgroundRequest): Promise<unknown> {
   switch (request.type) {
     case "watch/create":
       return createWatchAndRunBaseline(lifecycleDeps, request.input);
+    case "watch/update":
+      return updateWatchAndReschedule(lifecycleDeps, request.watchId, request.patch);
     case "watch/checkNow":
       return runCheckWatchNow(lifecycleDeps, request.watchId);
     case "watch/pause":

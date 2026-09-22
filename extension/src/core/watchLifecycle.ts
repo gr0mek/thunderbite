@@ -58,6 +58,23 @@ export async function resumeWatch(deps: LifecycleDeps, watchId: string): Promise
   return watch;
 }
 
+/** "Zapisz zmiany" (§5.3 edit form). Always reschedules — cheap, and
+ * correct whether or not the interval/sites actually changed. Does not
+ * re-run the baseline check: only creation does that. */
+export async function updateWatchAndReschedule(
+  deps: LifecycleDeps,
+  watchId: string,
+  patch: Partial<Omit<Watch, "id" | "createdAt">>,
+): Promise<Watch> {
+  const watch = await deps.watches.update(watchId, patch);
+  if (watch.paused) {
+    await clearWatchAlarm(watchId);
+  } else {
+    await scheduleNext(deps, watch);
+  }
+  return watch;
+}
+
 export async function deleteWatch(deps: LifecycleDeps, watchId: string): Promise<void> {
   await clearWatchAlarm(watchId);
   await deps.offers.deleteByWatch(watchId);
