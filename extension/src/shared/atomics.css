@@ -1,0 +1,60 @@
+/* Small layout-utility set used across popup/options components. */
+.fx {
+  display: flex;
+}
+.col {
+  flex-direction: column;
+}
+.ac {
+  align-items: center;
+}
+.ab {
+  align-items: baseline;
+}
+.jc {
+  justify-content: center;
+}
+.jb {
+  justify-content: space-between;
+}
+.jend {
+  justify-content: flex-end;
+}
+.f1 {
+  flex: 1;
+}
+.noshrink {
+  flex-shrink: 0;
+}
+.wrap {
+  flex-wrap: wrap;
+}
+.gap1 {
+  gap: var(--space-1);
+}
+.gap2 {
+  gap: var(--space-2);
+}
+.gap3 {
+  gap: var(--space-3);
+}
+.gap4 {
+  gap: var(--space-4);
+}
+.gap6 {
+  gap: var(--space-6);
+}
+.m0 {
+  margin: 0;
+}
+.tc {
+  text-align: center;
+}
+.tr {
+  text-align: right;
+}
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
