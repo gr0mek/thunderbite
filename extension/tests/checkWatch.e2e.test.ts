@@ -23,6 +23,7 @@ import { SiteHealthRepo } from "@/storage/siteHealthRepo";
 import { LogRepo } from "@/storage/logRepo";
 import { OfferRepo } from "@/storage/offerRepo";
 import { openOfferDb } from "@/storage/offerDb";
+import { Logger } from "@/shared/logger";
 
 function olxOffer(id: string, title: string): NormalizedOffer {
   return {
@@ -64,7 +65,7 @@ describe("checkWatch / watchLifecycle end-to-end", () => {
         notifications,
         new NotificationTargetStore(new MemoryStore()),
       ),
-      logs: new LogRepo(root),
+      logger: new Logger(new LogRepo(root)),
       siteFloorsMinutes: { olx: 1, vinted: 1, allegro: 1 },
     };
   });

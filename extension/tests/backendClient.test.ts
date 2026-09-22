@@ -57,13 +57,11 @@ describe("backendClient", () => {
   it("surfaces a failed send as a rejected promise", async () => {
     vi.stubGlobal(
       "fetch",
-      vi
-        .fn()
-        .mockResolvedValue({
-          ok: false,
-          status: 403,
-          text: () => Promise.resolve("email not verified"),
-        }),
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+        text: () => Promise.resolve("email not verified"),
+      }),
     );
     await expect(requestEmailVerification("foto@example.com")).rejects.toThrow(/403/);
   });

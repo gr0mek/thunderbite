@@ -25,8 +25,14 @@ import {
 } from "./alarms";
 import { ChromeNotifications, NotificationTargetStore, Notifier } from "./notifier";
 import { SiteRateLimiter } from "./rateLimiter";
+import {
+  HOUSEKEEPING_ALARM_NAME,
+  HOUSEKEEPING_PERIOD_MINUTES,
+  runHousekeeping,
+} from "./housekeeping";
 import { ChromeLocalStore } from "@/storage/local";
 import { createStorage } from "@/storage";
+import { Logger } from "@/shared/logger";
 
 // TODO(#6-#8): swap these for the real OLX/Vinted/Allegro adapters once
 // fixtures are available — see docs/adr-001-adapter-fixture-blocker.md.
@@ -41,6 +47,7 @@ const storage = createStorage();
 const rateLimiter = new SiteRateLimiter();
 const notificationTargets = new NotificationTargetStore(new ChromeLocalStore());
 const notifier = new Notifier(new ChromeNotifications(), notificationTargets);
+const logger = new Logger(storage.logs);
 
 const siteFloorsMinutes: Record<SiteId, number> = Object.fromEntries(
   (Object.keys(adapters) as SiteId[]).map((site) => [
@@ -56,7 +63,7 @@ const lifecycleDeps: LifecycleDeps = {
   siteHealth: storage.siteHealth,
   rateLimiter,
   notifier,
-  logs: storage.logs,
+  logger,
   siteFloorsMinutes,
 };
 
@@ -71,7 +78,7 @@ async function runWatchAndReschedule(watchId: string): Promise<void> {
   try {
     await checkWatch(watch, lifecycleDeps);
   } catch (err) {
-    await storage.logs.append("error", "checkWatch failed", {
+    logger.error("checkWatch failed", {
       watchId,
       error: err instanceof Error ? err.message : String(err),
     });
@@ -82,9 +89,26 @@ async function runWatchAndReschedule(watchId: string): Promise<void> {
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === HOUSEKEEPING_ALARM_NAME) {
+    void runHousekeeping({
+      adapters,
+      siteHealth: storage.siteHealth,
+      offers: storage.offers,
+      settings: storage.settings,
+      logger,
+    });
+    return;
+  }
   const watchId = parseWatchIdFromAlarm(alarm.name);
   if (!watchId) return;
   void runWatchAndReschedule(watchId);
+});
+
+// Idempotent: re-creating an alarm with the same name replaces it, so this
+// is safe to run on every service-worker wake-up rather than gating it on
+// onInstalled/onStartup.
+void chrome.alarms.create(HOUSEKEEPING_ALARM_NAME, {
+  periodInMinutes: HOUSEKEEPING_PERIOD_MINUTES,
 });
 
 async function handleMessage(request: BackgroundRequest): Promise<unknown> {

@@ -8,7 +8,7 @@ import {
 import { OfferRecordSchema, type OfferRecord, type Watch } from "@/shared/schemas";
 import type { Notifier } from "@/background/notifier";
 import type { SiteRateLimiter } from "@/background/rateLimiter";
-import type { LogRepo } from "@/storage/logRepo";
+import type { Logger } from "@/shared/logger";
 import type { OfferRepo } from "@/storage/offerRepo";
 import type { SiteHealthRepo } from "@/storage/siteHealthRepo";
 import type { WatchRepo } from "@/storage/watchRepo";
@@ -21,7 +21,7 @@ export interface CheckWatchDeps {
   siteHealth: SiteHealthRepo;
   rateLimiter: SiteRateLimiter;
   notifier: Notifier;
-  logs: LogRepo;
+  logger: Logger;
 }
 
 export function watchToSearchQuery(watch: Watch): SearchQuery {
@@ -59,7 +59,7 @@ export async function checkWatch(watch: Watch, deps: CheckWatchDeps): Promise<vo
         return offers;
       } catch (err) {
         await deps.siteHealth.recordError(site);
-        await deps.logs.append("error", `Adapter ${site} search failed`, {
+        deps.logger.error(`Adapter ${site} search failed`, {
           watchId: watch.id,
           error: err instanceof Error ? err.message : String(err),
         });
