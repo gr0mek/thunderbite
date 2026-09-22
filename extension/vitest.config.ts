@@ -1,0 +1,15 @@
+import { defineConfig } from "vitest/config";
+import preact from "@preact/preset-vite";
+
+export default defineConfig({
+  plugins: [preact()],
+  resolve: {
+    alias: {
+      "@": new URL("./src", import.meta.url).pathname,
+    },
+  },
+  test: {
+    environment: "jsdom",
+    include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
+  },
+});

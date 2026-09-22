@@ -1,0 +1,14 @@
+/* Design tokens — uxSmartBuy.md §8.2-8.4. Filled in fully in task #2; this
+   placeholder exists so popup/options build during scaffolding. */
+:root {
+  --bg: #ffffff;
+  --ink: #1b1e24;
+  --font-family: Manrope, system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181d;
+    --ink: #ecedef;
+  }
+}
