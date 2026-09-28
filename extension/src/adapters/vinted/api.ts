@@ -1,0 +1,154 @@
+import { z } from "zod";
+import type { NormalizedOffer, SearchQuery } from "../types";
+
+// Vinted's catalog API, as used by the open-source Vinted-Notifications
+// project (github.com/Fuyucch1/Vinted-Notifications, `pyVintedVN/`) — see
+// docs/adr-003-vinted-adapter.md for what was taken from it and why.
+//
+//   GET https://<host>/api/v2/catalog/items?search_text=…&order=newest_first
+//       &per_page=…&page=1&price_from=…&price_to=…&status_ids=…
+//
+// Anonymous access works once the browser holds Vinted's session cookies,
+// which the site sets on any plain page load (the reference client does a
+// HEAD on `/` and retries on 401) — see ./index.ts.
+
+export const VINTED_BASE_URL = "https://www.vinted.pl";
+export const CATALOG_ITEMS_PATH = "/api/v2/catalog/items";
+export const PER_PAGE = 20;
+
+/**
+ * Vinted's item-condition ("status") ids. "Nowy" covers both new-with-tags
+ * (6) and new-without-tags (1); "Używany" covers very good (2), good (3)
+ * and satisfactory (4).
+ */
+export const STATUS_IDS = {
+  new: [6, 1],
+  used: [2, 3, 4],
+} as const;
+
+/** Query params for one catalog request. Vinted's `search_text` is a single
+ * phrase, so a watch's OR-keywords are searched one request each. */
+export function buildCatalogParams(
+  keyword: string,
+  query: Pick<SearchQuery, "priceMin" | "priceMax" | "condition">,
+  perPage: number = PER_PAGE,
+): URLSearchParams {
+  const params = new URLSearchParams({
+    search_text: keyword,
+    order: "newest_first",
+    page: "1",
+    per_page: String(perPage),
+  });
+  if (query.priceMin !== undefined) params.set("price_from", String(query.priceMin));
+  if (query.priceMax !== undefined) params.set("price_to", String(query.priceMax));
+  if (query.condition === "new" || query.condition === "used") {
+    params.set("status_ids", STATUS_IDS[query.condition].join(","));
+  }
+  return params;
+}
+
+// Deliberately lenient: only the fields we read are declared, everything
+// else passes through untouched, and price accepts both shapes the API has
+// used (a `{amount, currency_code}` object, or a bare string next to a
+// top-level `currency`). One malformed item is dropped, not the whole page.
+const PriceSchema = z.union([
+  z.object({
+    amount: z.union([z.string(), z.number()]),
+    currency_code: z.string().optional(),
+  }),
+  z.string(),
+  z.number(),
+]);
+
+export const VintedItemSchema = z
+  .object({
+    id: z.union([z.number(), z.string()]),
+    title: z.string(),
+    url: z.string(),
+    price: PriceSchema.nullish(),
+    currency: z.string().nullish(),
+    brand_title: z.string().nullish(),
+    size_title: z.string().nullish(),
+    photo: z
+      .object({
+        url: z.string().nullish(),
+        high_resolution: z.object({ timestamp: z.number().nullish() }).nullish(),
+      })
+      .nullish(),
+    user: z
+      .object({
+        login: z.string().nullish(),
+        feedback_reputation: z.number().nullish(),
+      })
+      .nullish(),
+  })
+  .passthrough();
+export type VintedItem = z.infer<typeof VintedItemSchema>;
+
+export const CatalogResponseSchema = z
+  .object({ items: z.array(z.unknown()) })
+  .passthrough();
+
+function parseAmount(value: string | number): number | null {
+  const n =
+    typeof value === "number" ? value : Number.parseFloat(value.replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+function absoluteUrl(url: string, baseUrl: string): string | null {
+  try {
+    return new URL(url, baseUrl).toString();
+  } catch {
+    return null;
+  }
+}
+
+/** Maps one raw catalog item to a NormalizedOffer, or null if it's unusable. */
+export function normalizeItem(
+  raw: unknown,
+  baseUrl: string = VINTED_BASE_URL,
+  debug = false,
+): NormalizedOffer | null {
+  const parsed = VintedItemSchema.safeParse(raw);
+  if (!parsed.success) return null;
+  const item = parsed.data;
+
+  const url = absoluteUrl(item.url, baseUrl);
+  if (!url) return null;
+
+  let price: number | null = null;
+  let currency = item.currency ?? "PLN";
+  if (item.price != null) {
+    if (typeof item.price === "object") {
+      price = parseAmount(item.price.amount);
+      currency = item.price.currency_code ?? currency;
+    } else {
+      price = parseAmount(item.price);
+    }
+  }
+
+  const imageUrl = item.photo?.url ? absoluteUrl(item.photo.url, baseUrl) : null;
+  // The reference project uses the main photo's upload timestamp as the
+  // item's listing time — the catalog response carries no other one.
+  const ts = item.photo?.high_resolution?.timestamp;
+  const postedAt = typeof ts === "number" ? new Date(ts * 1000).toISOString() : undefined;
+
+  const offer: NormalizedOffer = {
+    site: "vinted",
+    externalId: String(item.id),
+    url,
+    title: item.title,
+    price,
+    currency,
+  };
+  if (imageUrl) offer.imageUrl = imageUrl;
+  if (postedAt) offer.postedAt = postedAt;
+  if (item.user?.login) {
+    offer.seller = { name: item.user.login };
+    if (typeof item.user.feedback_reputation === "number") {
+      offer.seller.rating = item.user.feedback_reputation;
+    }
+  }
+  if (debug) offer.raw = raw;
+  return offer;
+}
