@@ -17,10 +17,10 @@ Originally scoped for OLX, Vinted and Allegro; narrowed to Vinted only — see
 
 ## Status
 
-MVP: storage, scheduler, matcher/dedup, notifications, and the full popup +
-options UI are built and tested against a fake adapter. The real Vinted
-adapter (actual network fetching) is still blocked on fixtures/network
-access — see `docs/adr-001-adapter-fixture-blocker.md`.
+MVP: storage, scheduler, matcher/dedup, notifications, the full popup +
+options UI, and the real Vinted adapter (catalog API, modelled on
+[Vinted-Notifications](https://github.com/Fuyucch1/Vinted-Notifications)) —
+see `docs/adr-003-vinted-adapter.md`.
 
 ## Quick start
 

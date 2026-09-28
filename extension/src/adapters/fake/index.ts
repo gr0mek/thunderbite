@@ -9,9 +9,8 @@ import type {
 /**
  * An obviously-fake SiteAdapter for wiring and testing the scheduler /
  * matcher / dedup / notifier pipeline end-to-end. It does NOT model any
- * real Vinted endpoint, selector or response shape — the real adapter is
- * blocked on real fixtures (see docs/adr-001-adapter-fixture-blocker.md)
- * and must not be guessed at per startSmartBuy.md §6 rule 3.
+ * real Vinted endpoint, selector or response shape — the real adapter
+ * lives in ../vinted (docs/adr-003-vinted-adapter.md).
  *
  * Useful in dev (`npm run dev`, no real network calls) and in tests that
  * need a working SiteAdapter without depending on a real marketplace.

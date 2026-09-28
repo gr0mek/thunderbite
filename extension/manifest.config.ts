@@ -6,7 +6,8 @@ const SITE_HOSTS = ["*://*.vinted.pl/*", "*://*.vinted.com/*"];
 export default defineManifest({
   manifest_version: 3,
   name: "Thunder Bait",
-  description: "Automatycznie sprawdza Vinted i powiadamia o nowych, pasujących ofertach.",
+  description:
+    "Automatycznie sprawdza Vinted i powiadamia o nowych, pasujących ofertach.",
   version: pkg.version,
   // No default_locale: nothing here uses chrome.i18n — every string is
   // hardcoded Polish via shared/copy.pl.ts (uxSmartBuy.md §10 DoD). Setting

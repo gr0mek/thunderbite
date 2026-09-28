@@ -10,22 +10,28 @@ export interface SearchContext {
 }
 
 /**
- * Reads the current search query (and whatever filters are visible) off
- * a Vinted search-results page. Blocked the same way as the adapter
- * (docs/adr-001-adapter-fixture-blocker.md): the query-param names, and
- * how to tell a search-results page apart from any other page on the
- * site, are marketplace-specific facts this sandbox can't fetch to
- * verify, and startSmartBuy.md §6 rule 3 forbids guessing them.
+ * Reads the current search query (and visible filters) off a Vinted
+ * catalog page. Vinted keeps the whole search in the URL —
+ * `/catalog?search_text=…&price_from=…&price_to=…` — the same parameters
+ * the catalog API takes (see adapters/vinted/api.ts and
+ * docs/adr-003-vinted-adapter.md), so the document isn't needed.
  *
- * Returns null unconditionally until real fixtures unblock it — the
- * message-passing that carries this to the popup (content script →
- * background → popup) is real and wired up; only this function's body is
- * a stub.
+ * Returns null anywhere else, or on a catalog page with no search text
+ * (a filters-only browse has nothing to put in the watch's keywords).
  */
 export function detectSearchContext(
-  _site: SiteId,
-  _url: URL,
+  site: SiteId,
+  url: URL,
   _doc: Document,
 ): SearchContext | null {
-  return null;
+  if (site !== "vinted") return null;
+  if (!/^\/catalog\/?$/.test(url.pathname)) return null;
+
+  const query = (url.searchParams.get("search_text") ?? "").trim();
+  if (!query) return null;
+
+  const context: SearchContext = { query };
+  const priceMax = Number.parseFloat(url.searchParams.get("price_to") ?? "");
+  if (Number.isFinite(priceMax) && priceMax >= 0) context.priceMax = priceMax;
+  return context;
 }

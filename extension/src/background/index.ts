@@ -4,7 +4,7 @@
 // surviving between calls; everything that needs to survive goes through
 // `deps`, which is cheap to rebuild on every wake-up.
 
-import { createFakeAdapter } from "@/adapters/fake";
+import { createVintedAdapter } from "@/adapters/vinted";
 import type { SiteAdapter, SiteId } from "@/adapters/types";
 import { checkWatch } from "@/core/checkWatch";
 import {
@@ -36,11 +36,10 @@ import { createStorage } from "@/storage";
 import { Logger } from "@/shared/logger";
 import type { SearchContext } from "@/adapters/searchContext";
 
-// TODO(#8): swap this for the real Vinted adapter once fixtures are
-// available — see docs/adr-001-adapter-fixture-blocker.md. Everything
-// downstream only depends on the SiteAdapter interface.
+// See docs/adr-003-vinted-adapter.md. Everything downstream only depends
+// on the SiteAdapter interface.
 const adapters: Record<SiteId, SiteAdapter> = {
-  vinted: createFakeAdapter("vinted"),
+  vinted: createVintedAdapter(),
 };
 
 const storage = createStorage();
@@ -113,9 +112,8 @@ void chrome.alarms.create(HOUSEKEEPING_ALARM_NAME, {
 
 // F3 quick-add (uxSmartBuy.md §4 F3): content scripts report what they see
 // on a marketplace search page, keyed by tab id, so the popup can show a
-// banner if it's opened while that tab is active. Detection itself is
-// stubbed out for now (adapters/searchContext.ts), so this map stays
-// empty in practice — the relay is real and ready regardless. In-memory
+// banner if it's opened while that tab is active (detection lives in
+// adapters/searchContext.ts). In-memory
 // only: losing it on a service-worker restart just means the banner
 // doesn't show until the content script re-reports, which is harmless.
 const quickAddByTab = new Map<number, { site: SiteId; context: SearchContext }>();

@@ -2,7 +2,7 @@
 
 ## Status
 
-Blocked, pending either network access or fixtures supplied by the user.
+Superseded for Vinted by ADR-003 (OLX/Allegro dropped by ADR-002).
 
 ## Context
 

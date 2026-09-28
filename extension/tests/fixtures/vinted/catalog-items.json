@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "id": 4812345678,
+      "title": "Kurtka Nike ACG rozmiar M",
+      "url": "https://www.vinted.pl/items/4812345678-kurtka-nike-acg",
+      "brand_title": "Nike",
+      "size_title": "M",
+      "price": { "amount": "149.0", "currency_code": "PLN" },
+      "photo": {
+        "url": "https://images1.vinted.net/t/01_abc/f800/1.jpeg",
+        "high_resolution": { "timestamp": 1790000000 }
+      },
+      "user": { "login": "anna_k", "feedback_reputation": 0.98 }
+    },
+    {
+      "id": 4812345679,
+      "title": "Bluza Nike Tech Fleece",
+      "url": "/items/4812345679-bluza-nike-tech-fleece",
+      "price": "89.5",
+      "currency": "PLN",
+      "photo": null,
+      "user": { "login": "marek" }
+    },
+    { "id": 4812345680, "url": "https://www.vinted.pl/items/4812345680" }
+  ],
+  "pagination": { "current_page": 1, "per_page": 20 }
+}
