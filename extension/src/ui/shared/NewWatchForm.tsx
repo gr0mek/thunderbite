@@ -13,10 +13,7 @@ import {
   type Settings,
   type Watch,
 } from "@/shared/schemas";
-import type { SiteId } from "@/adapters/types";
 import { createWatch, updateWatch } from "@/background/messages";
-
-const ALL_SITES: SiteId[] = ["olx", "vinted", "allegro"];
 
 interface NewWatchFormProps {
   watch?: Watch | undefined;
@@ -42,7 +39,6 @@ export function NewWatchForm({
   const [priceMax, setPriceMax] = useState(
     (watch?.priceMax ?? initialQuery?.priceMax)?.toString() ?? "",
   );
-  const [sites, setSites] = useState<SiteId[]>(watch?.sites ?? ALL_SITES);
   const [interval, setInterval_] = useState(
     watch?.checkIntervalMinutes ?? settings.defaultCheckIntervalMinutes,
   );
@@ -71,17 +67,7 @@ export function NewWatchForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canSubmit = name.trim().length > 0 && sites.length > 0 && !submitting;
-
-  function toggleSite(site: SiteId) {
-    setSites((prev) =>
-      prev.includes(site)
-        ? prev.length > 1
-          ? prev.filter((s) => s !== site)
-          : prev
-        : [...prev, site],
-    );
-  }
+  const canSubmit = name.trim().length > 0 && !submitting;
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
@@ -107,7 +93,6 @@ export function NewWatchForm({
       name: name.trim(),
       keywords,
       excludeKeywords,
-      sites,
       priceMin: parsedPriceMin,
       priceMax: parsedPriceMax,
       location: locationCity
@@ -173,44 +158,24 @@ export function NewWatchForm({
           />
         </Field>
 
-        <div class="fx gap3">
-          <div style={{ flex: 1 }}>
-            <Field label={copy.form.priceMaxLabel}>
-              <div class="fx ac jb text-field">
-                <input
-                  aria-label={copy.form.priceMaxLabel}
-                  value={priceMax}
-                  onInput={(e) => setPriceMax((e.target as HTMLInputElement).value)}
-                  inputMode="numeric"
-                  style={{
-                    border: "none",
-                    background: "none",
-                    width: "100%",
-                    color: "inherit",
-                    font: "inherit",
-                  }}
-                />
-                <span class="text-meta">{copy.form.currency}</span>
-              </div>
-            </Field>
+        <Field label={copy.form.priceMaxLabel}>
+          <div class="fx ac jb text-field">
+            <input
+              aria-label={copy.form.priceMaxLabel}
+              value={priceMax}
+              onInput={(e) => setPriceMax((e.target as HTMLInputElement).value)}
+              inputMode="numeric"
+              style={{
+                border: "none",
+                background: "none",
+                width: "100%",
+                color: "inherit",
+                font: "inherit",
+              }}
+            />
+            <span class="text-meta">{copy.form.currency}</span>
           </div>
-          <div style={{ flex: 1 }}>
-            <Field label={copy.form.sitesLabel}>
-              <div class="fx gap2">
-                {ALL_SITES.map((site) => (
-                  <button
-                    key={site}
-                    type="button"
-                    class={`site-toggle ${sites.includes(site) ? "site-toggle--active" : ""}`}
-                    onClick={() => toggleSite(site)}
-                  >
-                    {copy.form.siteShort[site]}
-                  </button>
-                ))}
-              </div>
-            </Field>
-          </div>
-        </div>
+        </Field>
 
         <Field label={copy.form.intervalLabel}>
           <SegmentedControl

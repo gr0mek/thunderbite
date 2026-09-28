@@ -21,7 +21,7 @@ export function formatPrice(price: number | null): string {
 export interface EmailOffer {
   title: string;
   price: number | null;
-  site: string; // display name, e.g. "OLX" — already resolved by the caller
+  site: string; // display name, e.g. "Vinted" — already resolved by the caller
   location?: string;
   url: string;
   imageUrl?: string;

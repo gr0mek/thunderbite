@@ -1,6 +1,6 @@
 import type { SiteId } from "@/adapters/types";
 
-const SITES: SiteId[] = ["olx", "vinted", "allegro"];
+const SITES: SiteId[] = ["vinted"];
 const JITTER_FRACTION = 0.2; // ±20%, startSmartBuy.md §6 rule 11
 
 function sleep(ms: number): Promise<void> {

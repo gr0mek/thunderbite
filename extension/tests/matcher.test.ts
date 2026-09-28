@@ -4,9 +4,9 @@ import type { NormalizedOffer } from "@/adapters/types";
 
 function offer(overrides: Partial<NormalizedOffer> = {}): NormalizedOffer {
   return {
-    site: "olx",
+    site: "vinted",
     externalId: "1",
-    url: "https://olx.pl/oferta/1",
+    url: "https://vinted.pl/oferta/1",
     title: "Leica M6 czarna, stan bardzo dobry",
     price: 4200,
     currency: "PLN",

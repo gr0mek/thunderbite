@@ -6,8 +6,8 @@ import type { SiteId } from "@/adapters/types";
 // (docs/adr-001-adapter-fixture-blocker.md) — this test documents that,
 // so a future implementer removes it deliberately rather than by accident.
 describe("detectSearchContext", () => {
-  it("returns null for every site (stub, pending real fixtures)", () => {
-    const sites: SiteId[] = ["olx", "vinted", "allegro"];
+  it("returns null for the tracked site (stub, pending real fixtures)", () => {
+    const sites: SiteId[] = ["vinted"];
     for (const site of sites) {
       expect(
         detectSearchContext(site, new URL("https://example.com/search?q=test"), document),

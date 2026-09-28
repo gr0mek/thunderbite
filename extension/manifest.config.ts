@@ -1,18 +1,12 @@
 import { defineManifest } from "@crxjs/vite-plugin";
 import pkg from "./package.json";
 
-const SITE_HOSTS = [
-  "*://*.olx.pl/*",
-  "*://*.vinted.pl/*",
-  "*://*.vinted.com/*",
-  "*://*.allegro.pl/*",
-];
+const SITE_HOSTS = ["*://*.vinted.pl/*", "*://*.vinted.com/*"];
 
 export default defineManifest({
   manifest_version: 3,
   name: "Thunder Bait",
-  description:
-    "Automatycznie sprawdza OLX, Vinted i Allegro i powiadamia o nowych, pasujących ofertach.",
+  description: "Automatycznie sprawdza Vinted i powiadamia o nowych, pasujących ofertach.",
   version: pkg.version,
   // No default_locale: nothing here uses chrome.i18n — every string is
   // hardcoded Polish via shared/copy.pl.ts (uxSmartBuy.md §10 DoD). Setting
@@ -33,7 +27,7 @@ export default defineManifest({
     type: "module",
   },
   permissions: ["storage", "alarms", "notifications", "offscreen"],
-  // Scoped strictly to the three tracked marketplaces + backend, per
+  // Scoped strictly to the tracked marketplace + backend, per
   // startSmartBuy.md §6 rule 9 (host_permissions MUST NOT be broader).
   host_permissions: [...SITE_HOSTS, "https://*.supabase.co/*"],
   content_scripts: [

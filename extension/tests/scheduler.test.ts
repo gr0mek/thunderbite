@@ -19,20 +19,17 @@ describe("alarm naming", () => {
 });
 
 describe("effectiveIntervalMinutes", () => {
-  const floors = { olx: 5, vinted: 5, allegro: 5 };
+  const floors = { vinted: 5 };
 
-  it("uses the user's interval when it's already above every selected site's floor", () => {
+  it("uses the user's interval when it's already above the site's floor", () => {
     expect(
-      effectiveIntervalMinutes({ checkIntervalMinutes: 60, sites: ["olx"] }, floors),
+      effectiveIntervalMinutes({ checkIntervalMinutes: 60, sites: ["vinted"] }, floors),
     ).toBe(60);
   });
 
-  it("floors a too-low interval to the slowest selected site's minimum (§6 rule 10)", () => {
+  it("floors a too-low interval to the site's minimum (§6 rule 10)", () => {
     expect(
-      effectiveIntervalMinutes(
-        { checkIntervalMinutes: 5, sites: ["olx", "vinted"] },
-        { olx: 5, vinted: 20, allegro: 5 },
-      ),
+      effectiveIntervalMinutes({ checkIntervalMinutes: 5, sites: ["vinted"] }, { vinted: 20 }),
     ).toBe(20);
   });
 });
@@ -54,10 +51,10 @@ describe("SiteRateLimiter", () => {
     const starts: number[] = [];
     const t0 = Date.now();
     await Promise.all([
-      limiter.run("olx", 40, async () => {
+      limiter.run("vinted", 40, async () => {
         starts.push(Date.now() - t0);
       }),
-      limiter.run("olx", 40, async () => {
+      limiter.run("vinted", 40, async () => {
         starts.push(Date.now() - t0);
       }),
     ]);
@@ -67,26 +64,13 @@ describe("SiteRateLimiter", () => {
     expect(starts[1]! - starts[0]!).toBeGreaterThanOrEqual(28);
   });
 
-  it("does not make different sites wait on each other", async () => {
-    const limiter = new SiteRateLimiter();
-    const t0 = Date.now();
-    let vintedStart = 0;
-    await Promise.all([
-      limiter.run("olx", 200, () => new Promise((r) => setTimeout(r, 200))),
-      limiter.run("vinted", 200, async () => {
-        vintedStart = Date.now() - t0;
-      }),
-    ]);
-    expect(vintedStart).toBeLessThan(100);
-  });
-
   it("keeps the queue usable after a failed call", async () => {
     const limiter = new SiteRateLimiter();
     await expect(
-      limiter.run("allegro", 1, async () => {
+      limiter.run("vinted", 1, async () => {
         throw new Error("boom");
       }),
     ).rejects.toThrow("boom");
-    await expect(limiter.run("allegro", 1, async () => "ok")).resolves.toBe("ok");
+    await expect(limiter.run("vinted", 1, async () => "ok")).resolves.toBe("ok");
   });
 });

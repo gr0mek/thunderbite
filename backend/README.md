@@ -52,6 +52,3 @@ Then point the extension at it: copy `extension/.env.example` to
   Resend's own account limits. Fine for personal/small-scale use per
   `startSmartBuy.md`'s "użytek prywatny" framing in §11's open questions;
   add a `resend_at` cooldown column before any public rollout.
-- **Allegro OAuth/search backend functions are not here** — those belong
-  to the Allegro adapter (task blocked on real API docs access, see the
-  ADR above), not this email backend.

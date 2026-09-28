@@ -2,7 +2,7 @@ import type { SiteAdapter, SiteId } from "@/adapters/types";
 import type { Logger } from "@/shared/logger";
 import type { SiteHealthRepo } from "@/storage/siteHealthRepo";
 
-const SITES: SiteId[] = ["olx", "vinted", "allegro"];
+const SITES: SiteId[] = ["vinted"];
 
 export interface HealthCheckDeps {
   adapters: Record<SiteId, SiteAdapter>;

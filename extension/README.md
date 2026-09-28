@@ -1,7 +1,10 @@
 # Thunder Bait
 
-Chrome MV3 extension that watches OLX, Vinted and Allegro for matching offers
-and notifies you (browser + email) when one shows up.
+Chrome MV3 extension that watches Vinted for matching offers and notifies you
+(browser + email) when one shows up. Originally scoped for OLX, Vinted and
+Allegro; narrowed to Vinted only per a later product decision — the
+`SiteId`/adapter architecture is still generic, so a second site can be
+added back without a redesign.
 
 Implementation of the design handed off in `../SmartBuy MVP.dc.html` per the
 specs in `../chats/chat1.md`, `../project/uploads/startSmartBuy.md` (build

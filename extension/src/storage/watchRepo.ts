@@ -11,7 +11,7 @@ export class WatchLimitReachedError extends Error {
   }
 }
 
-const ALL_SITES = ["olx", "vinted", "allegro"] as const;
+const ALL_SITES = ["vinted"] as const;
 
 export class WatchRepo {
   constructor(private readonly root: RootStore) {}

@@ -2,7 +2,7 @@ import { SiteHealthSchema, type SiteHealth } from "@/shared/schemas";
 import type { SiteId } from "@/adapters/types";
 import type { RootStore } from "./rootStore";
 
-const ALL_SITES: SiteId[] = ["olx", "vinted", "allegro"];
+const ALL_SITES: SiteId[] = ["vinted"];
 
 export class SiteHealthRepo {
   constructor(private readonly root: RootStore) {}
@@ -10,7 +10,7 @@ export class SiteHealthRepo {
   async list(): Promise<SiteHealth[]> {
     const state = await this.root.read();
     const bySite = new Map(state.siteHealth.map((h) => [h.site, h]));
-    // Always return all three sites, even before any check has run.
+    // Always return every tracked site, even before any check has run.
     return ALL_SITES.map((site) => bySite.get(site) ?? SiteHealthSchema.parse({ site }));
   }
 

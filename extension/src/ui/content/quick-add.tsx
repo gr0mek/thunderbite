@@ -6,9 +6,7 @@ import { detectSearchContext } from "@/adapters/searchContext";
 import type { SiteId } from "@/adapters/types";
 
 function siteFromHostname(hostname: string): SiteId | null {
-  if (hostname.endsWith("olx.pl")) return "olx";
   if (hostname.endsWith("vinted.pl") || hostname.endsWith("vinted.com")) return "vinted";
-  if (hostname.endsWith("allegro.pl")) return "allegro";
   return null;
 }
 

@@ -4,7 +4,7 @@ import { z } from "zod";
 // defaults: 20-watch limit, 15 min default interval, 08:00 digest hour,
 // 30-day offer retention, 5 min minimum interval).
 
-export const SiteIdSchema = z.enum(["olx", "vinted", "allegro"]);
+export const SiteIdSchema = z.enum(["vinted"]);
 
 export const CHECK_INTERVAL_PRESETS_MINUTES = [5, 15, 60, 360] as const;
 export const MIN_CHECK_INTERVAL_MINUTES = 5;

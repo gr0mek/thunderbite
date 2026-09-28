@@ -25,11 +25,11 @@ import { OfferRepo } from "@/storage/offerRepo";
 import { openOfferDb } from "@/storage/offerDb";
 import { Logger } from "@/shared/logger";
 
-function olxOffer(id: string, title: string): NormalizedOffer {
+function vintedOffer(id: string, title: string): NormalizedOffer {
   return {
-    site: "olx",
+    site: "vinted",
     externalId: id,
-    url: `https://olx.pl/oferta/${id}`,
+    url: `https://vinted.pl/oferta/${id}`,
     title,
     price: 4200,
     currency: "PLN",
@@ -43,15 +43,13 @@ function olxOffer(id: string, title: string): NormalizedOffer {
 describe("checkWatch / watchLifecycle end-to-end", () => {
   let deps: LifecycleDeps;
   let create: ReturnType<typeof vi.fn>;
-  let olxResults: NormalizedOffer[];
+  let vintedResults: NormalizedOffer[];
 
   beforeEach(() => {
     const root = new RootStore(new MemoryStore());
-    olxResults = [olxOffer("1", "Leica M6 czarna"), olxOffer("2", "Nikon FM2")];
+    vintedResults = [vintedOffer("1", "Leica M6 czarna"), vintedOffer("2", "Nikon FM2")];
     const adapters: Record<SiteId, SiteAdapter> = {
-      olx: createFakeAdapter("olx", () => olxResults),
-      vinted: createFakeAdapter("vinted", () => []),
-      allegro: createFakeAdapter("allegro", () => []),
+      vinted: createFakeAdapter("vinted", () => vintedResults),
     };
     create = vi.fn().mockResolvedValue(undefined);
     const notifications: NotificationsPort = { create };
@@ -66,7 +64,7 @@ describe("checkWatch / watchLifecycle end-to-end", () => {
         new NotificationTargetStore(new MemoryStore()),
       ),
       logger: new Logger(new LogRepo(root)),
-      siteFloorsMinutes: { olx: 1, vinted: 1, allegro: 1 },
+      siteFloorsMinutes: { vinted: 1 },
     };
   });
 
@@ -74,14 +72,14 @@ describe("checkWatch / watchLifecycle end-to-end", () => {
     const watch = await createWatchAndRunBaseline(deps, {
       name: "Leica M6",
       keywords: ["Leica M6"],
-      sites: ["olx"],
+      sites: ["vinted"],
     });
 
     expect(watch.baselineCompletedAt).toBeDefined();
     expect(create).not.toHaveBeenCalled();
 
     const saved = await deps.offers.listByWatch(watch.id);
-    expect(saved).toHaveLength(1); // only the OLX offer matching "Leica M6"
+    expect(saved).toHaveLength(1); // only the Vinted offer matching "Leica M6"
     expect(saved[0]!.isBaseline).toBe(true);
 
     const alarm = await chrome.alarms.get(watchAlarmName(watch.id));
@@ -92,11 +90,11 @@ describe("checkWatch / watchLifecycle end-to-end", () => {
     const watch = await createWatchAndRunBaseline(deps, {
       name: "Leica M6",
       keywords: ["Leica M6"],
-      sites: ["olx"],
+      sites: ["vinted"],
     });
     create.mockClear();
 
-    olxResults = [...olxResults, olxOffer("3", "Leica M6 TTL 0.72")];
+    vintedResults = [...vintedResults, vintedOffer("3", "Leica M6 TTL 0.72")];
     await checkWatchNow(deps, watch.id);
 
     expect(create).toHaveBeenCalledTimes(1); // only offer "3" is new
@@ -123,7 +121,7 @@ describe("checkWatch / watchLifecycle end-to-end", () => {
     const watch = await createWatchAndRunBaseline(deps, {
       name: "Leica M6",
       keywords: ["Leica M6"],
-      sites: ["olx"],
+      sites: ["vinted"],
     });
     await deleteWatch(deps, watch.id);
 

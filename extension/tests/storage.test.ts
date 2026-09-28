@@ -36,7 +36,7 @@ describe("WatchRepo", () => {
     const { watches } = makeRepo();
     const w = await watches.create({ name: "Leica M6" });
     expect(w.keywords).toEqual(["Leica M6"]);
-    expect(w.sites.sort()).toEqual(["allegro", "olx", "vinted"]);
+    expect(w.sites.sort()).toEqual(["vinted"]);
     expect(w.checkIntervalMinutes).toBe(15);
     expect(w.notifyEmail).toBe("immediate");
     expect(w.paused).toBe(false);
@@ -81,10 +81,10 @@ describe("SiteHealthRepo", () => {
     expect(healthy.consecutiveErrors).toBe(0);
   });
 
-  it("lists all three sites even before any check ran", async () => {
+  it("lists every tracked site even before any check ran", async () => {
     const repo = new SiteHealthRepo(new RootStore(new MemoryStore()));
     const list = await repo.list();
-    expect(list.map((h) => h.site).sort()).toEqual(["allegro", "olx", "vinted"]);
+    expect(list.map((h) => h.site).sort()).toEqual(["vinted"]);
     expect(list.every((h) => h.status === "ok")).toBe(true);
   });
 });
@@ -101,11 +101,11 @@ describe("OfferRepo", () => {
 
   function offer(overrides: Partial<OfferRecord> = {}): OfferRecord {
     return {
-      key: offerKey({ site: "olx", externalId: overrides.externalId ?? "abc" }),
+      key: offerKey({ site: "vinted", externalId: overrides.externalId ?? "abc" }),
       watchId: TEST_WATCH_ID,
-      site: "olx",
+      site: "vinted",
       externalId: "abc",
-      url: "https://olx.pl/oferta/abc",
+      url: "https://vinted.pl/oferta/abc",
       title: "Leica M6 czarna",
       price: 4200,
       currency: "PLN",

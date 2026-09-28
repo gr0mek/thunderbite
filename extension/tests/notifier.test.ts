@@ -12,7 +12,7 @@ const WATCH: Watch = {
   name: "Leica M6",
   keywords: ["Leica M6"],
   excludeKeywords: [],
-  sites: ["olx", "allegro"],
+  sites: ["vinted"],
   condition: "any",
   checkIntervalMinutes: 15,
   notifyBrowser: true,
@@ -24,11 +24,11 @@ const WATCH: Watch = {
 
 function offer(overrides: Partial<OfferRecord> = {}): OfferRecord {
   return {
-    key: `olx:${overrides.externalId ?? "1"}`,
+    key: `vinted:${overrides.externalId ?? "1"}`,
     watchId: WATCH.id,
-    site: "olx",
+    site: "vinted",
     externalId: "1",
-    url: "https://olx.pl/oferta/1",
+    url: "https://vinted.pl/oferta/1",
     title: "Leica M6 czarna",
     price: 4200,
     currency: "PLN",
@@ -62,7 +62,7 @@ describe("Notifier", () => {
     expect(firstOptions.title).toContain("4 200 zł");
     expect(firstOptions.title).toContain("Leica M6 czarna");
     const target = await targets.take(firstId);
-    expect(target).toEqual({ type: "offer", offerKey: "olx:1", url: offers[0]!.url });
+    expect(target).toEqual({ type: "offer", offerKey: "vinted:1", url: offers[0]!.url });
   });
 
   it("groups into a single notification when there are more than 3", async () => {

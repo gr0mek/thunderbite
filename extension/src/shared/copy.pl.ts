@@ -64,8 +64,6 @@ export const copy = {
     priceMaxLabel: "Cena maks.",
     priceMinLabel: "Cena min.",
     currency: "zł",
-    sitesLabel: "Gdzie szukać",
-    siteShort: { olx: "OLX", vinted: "Vin", allegro: "All" },
     intervalLabel: "Sprawdzaj co",
     intervalPreset: (minutes: number) =>
       minutes < 60 ? `${minutes} min` : `${minutes / 60} h`,
@@ -98,7 +96,7 @@ export const copy = {
 
   onboarding: {
     pitch:
-      "Thunder Bait sprawdza OLX, Vinted i Allegro za Ciebie i daje znać, gdy pojawi się pasująca oferta.",
+      "Thunder Bait sprawdza Vinted za Ciebie i daje znać, gdy pojawi się pasująca oferta.",
     emailLabel: "E-mail (opcjonalnie)",
     emailPlaceholder: "ty@example.com",
     save: "Zapisz",
@@ -111,7 +109,6 @@ export const copy = {
   common: {
     back: "Wstecz",
     allFeminine: "wszystkie",
-    site: "Serwis",
   },
 
   offersScreen: {
@@ -186,8 +183,8 @@ export const copy = {
     cancel: "Anuluj",
   },
 
-  siteNames: { olx: "OLX", vinted: "Vinted", allegro: "Allegro" },
-  siteInitial: { olx: "O", vinted: "V", allegro: "A" },
+  siteNames: { vinted: "Vinted" },
+  siteInitial: { vinted: "V" },
 
   emptyStates: {
     noWatches: "Nie obserwujesz jeszcze niczego.",
@@ -195,7 +192,7 @@ export const copy = {
     noNewOffers: (rel: string) => `Nic nowego. Ostatnie sprawdzenie: ${rel}.`,
     seeEarlierOffers: "Zobacz wcześniejsze oferty",
     firstCheckInProgress: "Pierwsze sprawdzenie w toku",
-    checkingSites: "Sprawdzam OLX, Vinted i Allegro…",
+    checkingSites: "Sprawdzam Vinted…",
   },
 
   banners: {

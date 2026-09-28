@@ -30,8 +30,8 @@ describe("backendClient", () => {
     await sendImmediateEmail("foto@example.com", {
       title: "Leica M6 czarna",
       price: 4200,
-      site: "OLX",
-      url: "https://olx.pl/oferta/1",
+      site: "Vinted",
+      url: "https://vinted.pl/oferta/1",
     });
     const [, init] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     expect(JSON.parse(init.body)).toEqual({
@@ -40,8 +40,8 @@ describe("backendClient", () => {
       offer: {
         title: "Leica M6 czarna",
         price: 4200,
-        site: "OLX",
-        url: "https://olx.pl/oferta/1",
+        site: "Vinted",
+        url: "https://vinted.pl/oferta/1",
       },
     });
   });

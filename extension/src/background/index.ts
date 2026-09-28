@@ -36,13 +36,11 @@ import { createStorage } from "@/storage";
 import { Logger } from "@/shared/logger";
 import type { SearchContext } from "@/adapters/searchContext";
 
-// TODO(#6-#8): swap these for the real OLX/Vinted/Allegro adapters once
-// fixtures are available — see docs/adr-001-adapter-fixture-blocker.md.
-// Everything downstream only depends on the SiteAdapter interface.
+// TODO(#8): swap this for the real Vinted adapter once fixtures are
+// available — see docs/adr-001-adapter-fixture-blocker.md. Everything
+// downstream only depends on the SiteAdapter interface.
 const adapters: Record<SiteId, SiteAdapter> = {
-  olx: createFakeAdapter("olx"),
   vinted: createFakeAdapter("vinted"),
-  allegro: createFakeAdapter("allegro"),
 };
 
 const storage = createStorage();

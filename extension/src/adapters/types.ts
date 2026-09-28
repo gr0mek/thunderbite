@@ -1,7 +1,7 @@
 // Shared adapter contract — startSmartBuy.md §5. Every marketplace adapter
 // implements this and nothing else talks to a marketplace directly.
 
-export type SiteId = "olx" | "vinted" | "allegro";
+export type SiteId = "vinted";
 
 export interface SearchQuery {
   /** Any of these matching is enough (OR). */

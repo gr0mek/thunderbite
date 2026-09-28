@@ -9,7 +9,7 @@ import { SiteHealthRepo } from "@/storage/siteHealthRepo";
 
 function adapterReturning(result: AdapterHealth | Error): SiteAdapter {
   return {
-    id: "olx",
+    id: "vinted",
     minIntervalMs: 1,
     search: async () => [],
     healthCheck: async () => {
@@ -20,46 +20,48 @@ function adapterReturning(result: AdapterHealth | Error): SiteAdapter {
 }
 
 describe("runHealthChecks", () => {
-  it("records success for a healthy adapter and error for degraded/broken/throwing ones", async () => {
+  it("records success for a healthy adapter", async () => {
     const root = new RootStore(new MemoryStore());
     const siteHealth = new SiteHealthRepo(root);
     const logger = new Logger(new LogRepo(root));
 
-    const adapters: Record<SiteId, SiteAdapter> = {
-      olx: adapterReturning("ok"),
-      vinted: adapterReturning("degraded"),
-      allegro: adapterReturning(new Error("timeout")),
-    };
+    await runHealthChecks({
+      adapters: { vinted: adapterReturning("ok") },
+      siteHealth,
+      logger,
+    });
 
-    await runHealthChecks({ adapters, siteHealth, logger });
+    const vinted = await siteHealth.get("vinted");
+    expect(vinted.status).toBe("ok");
+    expect(vinted.consecutiveErrors).toBe(0);
+  });
 
-    const [olx, vinted, allegro] = await Promise.all([
-      siteHealth.get("olx"),
-      siteHealth.get("vinted"),
-      siteHealth.get("allegro"),
-    ]);
-    expect(olx.status).toBe("ok");
-    expect(olx.consecutiveErrors).toBe(0);
+  it("records degraded when the adapter throws", async () => {
+    const root = new RootStore(new MemoryStore());
+    const siteHealth = new SiteHealthRepo(root);
+    const logger = new Logger(new LogRepo(root));
+
+    await runHealthChecks({
+      adapters: { vinted: adapterReturning(new Error("timeout")) },
+      siteHealth,
+      logger,
+    });
+
+    const vinted = await siteHealth.get("vinted");
     expect(vinted.status).toBe("degraded");
     expect(vinted.consecutiveErrors).toBe(1);
-    expect(allegro.status).toBe("degraded");
-    expect(allegro.consecutiveErrors).toBe(1);
   });
 
   it("reaches broken after 3 consecutive unhealthy checks", async () => {
     const root = new RootStore(new MemoryStore());
     const siteHealth = new SiteHealthRepo(root);
     const logger = new Logger(new LogRepo(root));
-    const adapters: Record<SiteId, SiteAdapter> = {
-      olx: adapterReturning("broken"),
-      vinted: adapterReturning("ok"),
-      allegro: adapterReturning("ok"),
-    };
+    const adapters: Record<SiteId, SiteAdapter> = { vinted: adapterReturning("broken") };
 
     await runHealthChecks({ adapters, siteHealth, logger });
     await runHealthChecks({ adapters, siteHealth, logger });
     await runHealthChecks({ adapters, siteHealth, logger });
 
-    expect((await siteHealth.get("olx")).status).toBe("broken");
+    expect((await siteHealth.get("vinted")).status).toBe("broken");
   });
 });

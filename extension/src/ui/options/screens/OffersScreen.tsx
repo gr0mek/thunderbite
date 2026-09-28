@@ -1,6 +1,5 @@
 import { useMemo, useState } from "preact/hooks";
 import { copy } from "@/shared/copy.pl";
-import type { SiteId } from "@/adapters/types";
 import type { OfferRecord, Watch } from "@/shared/schemas";
 import { storage, useAllOffers } from "@/ui/shared/dataHooks";
 import { EmptyState } from "@/ui/shared/EmptyState";
@@ -11,12 +10,10 @@ interface OffersScreenProps {
 }
 
 type StateFilter = "new" | "seen" | "hidden";
-const ALL_SITES: SiteId[] = ["olx", "vinted", "allegro"];
 
 export function OffersScreen({ watches }: OffersScreenProps) {
   const [stateFilter, setStateFilter] = useState<StateFilter>("new");
   const [watchId, setWatchId] = useState<string>("");
-  const [site, setSite] = useState<SiteId | "">("");
   const { offersByWatch, reload } = useAllOffers(watches, stateFilter);
 
   const watchNames = useMemo(
@@ -29,7 +26,6 @@ export function OffersScreen({ watches }: OffersScreenProps) {
     if (watchId && id !== watchId) continue;
     const watchName = watchNames.get(id) ?? "";
     for (const offer of offers) {
-      if (site && offer.site !== site) continue;
       rows.push({ offer, watchName });
     }
   }
@@ -75,22 +71,6 @@ export function OffersScreen({ watches }: OffersScreenProps) {
           {watches.map((w) => (
             <option key={w.id} value={w.id}>
               {w.name}
-            </option>
-          ))}
-        </select>
-        <select
-          class="select-field"
-          style={{ width: "auto" }}
-          aria-label={copy.common.site}
-          value={site}
-          onChange={(e) => setSite((e.target as HTMLSelectElement).value as SiteId | "")}
-        >
-          <option value="">
-            {copy.common.site}: {copy.common.allFeminine}
-          </option>
-          {ALL_SITES.map((s) => (
-            <option key={s} value={s}>
-              {copy.siteNames[s]}
             </option>
           ))}
         </select>

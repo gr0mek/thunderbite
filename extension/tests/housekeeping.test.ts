@@ -14,7 +14,7 @@ import type { OfferRecord } from "@/shared/schemas";
 
 function okAdapter(): SiteAdapter {
   return {
-    id: "olx",
+    id: "vinted",
     minIntervalMs: 1,
     search: async () => [],
     healthCheck: async (): Promise<AdapterHealth> => "ok",
@@ -25,11 +25,11 @@ const WATCH_ID = "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d";
 
 function offer(id: string, foundAt: string): OfferRecord {
   return {
-    key: offerKey({ site: "olx", externalId: id }),
+    key: offerKey({ site: "vinted", externalId: id }),
     watchId: WATCH_ID,
-    site: "olx",
+    site: "vinted",
     externalId: id,
-    url: `https://olx.pl/oferta/${id}`,
+    url: `https://vinted.pl/oferta/${id}`,
     title: "Leica M6",
     price: 4200,
     currency: "PLN",
@@ -62,15 +62,13 @@ describe("runHousekeeping", () => {
     const siteHealth = new SiteHealthRepo(root);
     const logger = new Logger(new LogRepo(root));
     const adapters: Record<SiteId, SiteAdapter> = {
-      olx: okAdapter(),
       vinted: okAdapter(),
-      allegro: okAdapter(),
     };
 
     await runHousekeeping({ adapters, siteHealth, offers, settings, logger });
 
     const remaining = await offers.listByWatch(WATCH_ID);
     expect(remaining.map((o) => o.externalId)).toEqual(["recent"]);
-    expect((await siteHealth.get("olx")).status).toBe("ok");
+    expect((await siteHealth.get("vinted")).status).toBe("ok");
   });
 });

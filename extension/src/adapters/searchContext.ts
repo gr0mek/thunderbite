@@ -11,11 +11,11 @@ export interface SearchContext {
 
 /**
  * Reads the current search query (and whatever filters are visible) off
- * an OLX/Vinted/Allegro search-results page. Blocked the same way as the
- * adapters (docs/adr-001-adapter-fixture-blocker.md): the query-param
- * names, and how to tell a search-results page apart from any other page
- * on these sites, are marketplace-specific facts this sandbox can't fetch
- * to verify, and startSmartBuy.md §6 rule 3 forbids guessing them.
+ * a Vinted search-results page. Blocked the same way as the adapter
+ * (docs/adr-001-adapter-fixture-blocker.md): the query-param names, and
+ * how to tell a search-results page apart from any other page on the
+ * site, are marketplace-specific facts this sandbox can't fetch to
+ * verify, and startSmartBuy.md §6 rule 3 forbids guessing them.
  *
  * Returns null unconditionally until real fixtures unblock it — the
  * message-passing that carries this to the popup (content script →
