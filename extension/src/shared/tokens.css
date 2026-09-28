@@ -1,0 +1,127 @@
+/* Design tokens — uxSmartBuy.md §8. Light is the default; dark applies via
+   prefers-color-scheme (§9: "Tryb ciemny wg prefers-color-scheme") and can
+   be forced with [data-theme="dark"] / [data-theme="light"] for previews. */
+
+@import "./fonts.css";
+
+:root {
+  --bg: #ffffff;
+  --surface: #f3f4f6;
+  --ink: #1b1e24;
+  --ink-muted: #646a75;
+  --line: #e3e5e9;
+  --tag: #f2c230;
+  --action: #2b4dd8;
+  --warn: #b26a00;
+  --danger: #c0362c;
+
+  /* --tag is a fill only (never text on light bg — contrast too low). */
+  --on-tag: #16181d;
+  --on-action: #ffffff;
+
+  --font-family: Manrope, system-ui, sans-serif;
+
+  /* Spacing scale, §8.4. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+
+  /* Radii, §8.4. */
+  --radius-field: 8px;
+  --radius-panel: 12px;
+  --radius-pill: 999px;
+  --radius-thumb: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181d;
+    --surface: #1f2229;
+    --ink: #ecedef;
+    --ink-muted: #9ba1ab;
+    --line: #2c3038;
+    --tag: #f2c230;
+    --action: #7c95ff;
+    --warn: #e0a13a;
+    --danger: #f07167;
+    --on-action: #16181d;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #16181d;
+  --surface: #1f2229;
+  --ink: #ecedef;
+  --ink-muted: #9ba1ab;
+  --line: #2c3038;
+  --tag: #f2c230;
+  --action: #7c95ff;
+  --warn: #e0a13a;
+  --danger: #f07167;
+  --on-action: #16181d;
+}
+
+:root[data-theme="light"] {
+  --bg: #ffffff;
+  --surface: #f3f4f6;
+  --ink: #1b1e24;
+  --ink-muted: #646a75;
+  --line: #e3e5e9;
+  --action: #2b4dd8;
+  --warn: #b26a00;
+  --danger: #c0362c;
+  --on-action: #ffffff;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  color: var(--ink);
+  background: var(--bg);
+}
+
+a {
+  color: var(--action);
+}
+
+/* Typography roles, §8.3. */
+.text-title {
+  font: 700 16px/22px var(--font-family);
+}
+.text-offer-title {
+  font: 600 14px/20px var(--font-family);
+}
+.text-price {
+  font: 700 15px/20px var(--font-family);
+  font-variant-numeric: tabular-nums;
+}
+.text-body {
+  font: 400 13px/18px var(--font-family);
+}
+.text-meta {
+  font: 400 12px/16px var(--font-family);
+  color: var(--ink-muted);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .transition-collapse {
+    transition:
+      height 150ms ease,
+      opacity 150ms ease;
+  }
+  .transition-form {
+    transition: transform 150ms ease;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--action);
+  outline-offset: 2px;
+}

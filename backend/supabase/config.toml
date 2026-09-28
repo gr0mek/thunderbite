@@ -1,0 +1,15 @@
+# All four functions are public (no Supabase Auth session — the extension
+# has no user accounts, per uxSmartBuy.md §5.6). Each one authorizes itself
+# instead: request-verification/send-email check the subscriber's status in
+# the DB, confirm-email/unsubscribe require the right opaque token.
+[functions.request-verification]
+verify_jwt = false
+
+[functions.confirm-email]
+verify_jwt = false
+
+[functions.unsubscribe]
+verify_jwt = false
+
+[functions.send-email]
+verify_jwt = false
