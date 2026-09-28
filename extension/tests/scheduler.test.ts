@@ -29,7 +29,10 @@ describe("effectiveIntervalMinutes", () => {
 
   it("floors a too-low interval to the site's minimum (§6 rule 10)", () => {
     expect(
-      effectiveIntervalMinutes({ checkIntervalMinutes: 5, sites: ["vinted"] }, { vinted: 20 }),
+      effectiveIntervalMinutes(
+        { checkIntervalMinutes: 5, sites: ["vinted"] },
+        { vinted: 20 },
+      ),
     ).toBe(20);
   });
 });
