@@ -108,6 +108,70 @@ export const OfferRecordSchema = z.object({
 });
 export type OfferRecord = z.infer<typeof OfferRecordSchema>;
 
+/**
+ * Stable error codes for a failed scan — shown in the UI and copied into
+ * diagnostic reports, so keep existing codes' meaning fixed. Descriptions
+ * and hints live in copy.pl.ts (`scanErrors`).
+ */
+export const SCAN_ERROR_CODES = [
+  "VNT-401",
+  "VNT-403",
+  "VNT-404",
+  "VNT-429",
+  "VNT-5XX",
+  "VNT-HTTP",
+  "VNT-NET",
+  "VNT-TIMEOUT",
+  "VNT-JSON",
+  "VNT-SHAPE",
+  "VNT-EMPTY",
+  "APP-UNKNOWN",
+] as const;
+export const ScanErrorCodeSchema = z.enum(SCAN_ERROR_CODES);
+export type ScanErrorCode = z.infer<typeof ScanErrorCodeSchema>;
+
+export const TransportSchema = z.enum(["sw", "tab"]);
+export type Transport = z.infer<typeof TransportSchema>;
+
+/** One HTTP request an adapter made during a scan. */
+export const RequestTraceSchema = z.object({
+  /** Request URL; for Vinted, a catalog URL whose query is the user's search. */
+  url: z.string(),
+  /** "sw" = fetched by the service worker, "tab" = through an open Vinted tab. */
+  via: TransportSchema,
+  attempt: z.number().int().positive(),
+  /** HTTP status, or null when the request never got a response. */
+  status: z.number().int().nullable(),
+  ms: z.number().nonnegative(),
+  items: z.number().int().nonnegative().optional(),
+  code: ScanErrorCodeSchema.optional(),
+  /** Start of the response body on failures (e.g. an anti-bot page). */
+  snippet: z.string().max(500).optional(),
+  note: z.string().max(200).optional(),
+});
+export type RequestTrace = z.infer<typeof RequestTraceSchema>;
+
+/** One scan (a watch check, or a site connection test) for the diagnostics log. */
+export const ScanRecordSchema = z.object({
+  id: z.string(),
+  kind: z.enum(["watch", "health"]),
+  site: SiteIdSchema,
+  watchId: z.string().optional(),
+  watchName: z.string().optional(),
+  startedAt: z.string().datetime(),
+  durationMs: z.number().nonnegative(),
+  ok: z.boolean(),
+  baseline: z.boolean().default(false),
+  /** Offers returned by the site, after matching, and actually new. */
+  fetched: z.number().int().nonnegative().default(0),
+  matched: z.number().int().nonnegative().default(0),
+  inserted: z.number().int().nonnegative().default(0),
+  errorCode: ScanErrorCodeSchema.optional(),
+  errorMessage: z.string().max(500).optional(),
+  requests: z.array(RequestTraceSchema).default([]),
+});
+export type ScanRecord = z.infer<typeof ScanRecordSchema>;
+
 export const SiteHealthSchema = z.object({
   site: SiteIdSchema,
   status: AdapterHealthSchema.default("ok"),
@@ -115,6 +179,9 @@ export const SiteHealthSchema = z.object({
   consecutiveErrors: z.number().int().nonnegative().default(0),
   /** When the current non-ok status started, for "od 14:10" style copy. */
   since: z.string().datetime().optional(),
+  lastErrorCode: ScanErrorCodeSchema.optional(),
+  lastErrorMessage: z.string().max(500).optional(),
+  lastErrorAt: z.string().datetime().optional(),
 });
 export type SiteHealth = z.infer<typeof SiteHealthSchema>;
 
@@ -154,5 +221,6 @@ export const StorageRootSchema = z.object({
   settings: SettingsSchema.default(SettingsSchema.parse({})),
   siteHealth: z.array(SiteHealthSchema).default([]),
   logs: z.array(LogEntrySchema).default([]),
+  scans: z.array(ScanRecordSchema).default([]),
 });
 export type StorageRoot = z.infer<typeof StorageRootSchema>;

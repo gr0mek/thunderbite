@@ -110,3 +110,63 @@ body {
   font-weight: 700;
   border-color: transparent;
 }
+
+/* Diagnostics screen */
+.code-badge {
+  display: inline-block;
+  font:
+    600 11px/16px ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  white-space: nowrap;
+}
+.diag-pre {
+  display: block;
+  font:
+    12px/18px ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: var(--radius-field);
+  padding: 6px 8px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.diag-log--warn {
+  color: var(--warn);
+}
+.diag-log--error {
+  color: var(--danger);
+}
+.diag-kv {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 16px;
+  margin: 0;
+}
+.diag-kv dd {
+  margin: 0;
+  word-break: break-word;
+}
+.diag-row {
+  cursor: pointer;
+}
+.diag-details {
+  padding: 4px 0 8px;
+}
+.diag-request {
+  border-left: 2px solid var(--line);
+  padding-left: 8px;
+}
+button.code-badge {
+  background: none;
+  cursor: pointer;
+  margin-left: 4px;
+}

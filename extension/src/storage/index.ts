@@ -4,6 +4,7 @@ import { WatchRepo } from "./watchRepo";
 import { SettingsRepo } from "./settingsRepo";
 import { SiteHealthRepo } from "./siteHealthRepo";
 import { LogRepo } from "./logRepo";
+import { ScanLogRepo } from "./scanLogRepo";
 import { OfferRepo } from "./offerRepo";
 import { openOfferDb } from "./offerDb";
 
@@ -18,6 +19,7 @@ export function createStorage() {
     settings: new SettingsRepo(root),
     siteHealth: new SiteHealthRepo(root),
     logs: new LogRepo(root),
+    scans: new ScanLogRepo(root),
     offers: new OfferRepo(offerDb),
   };
 }
@@ -30,6 +32,7 @@ export { WatchRepo } from "./watchRepo";
 export { SettingsRepo } from "./settingsRepo";
 export { SiteHealthRepo } from "./siteHealthRepo";
 export { LogRepo } from "./logRepo";
+export { ScanLogRepo } from "./scanLogRepo";
 export { OfferRepo, type OfferFilter } from "./offerRepo";
 export { MemoryStore, ChromeLocalStore, type KeyValueStore } from "./local";
 export { openOfferDb } from "./offerDb";

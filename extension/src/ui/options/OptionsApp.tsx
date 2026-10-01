@@ -8,6 +8,7 @@ import { WatchesScreen } from "./screens/WatchesScreen";
 import { WatchDetailScreen } from "./screens/WatchDetailScreen";
 import { OffersScreen } from "./screens/OffersScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
+import { DiagnosticsScreen } from "./screens/DiagnosticsScreen";
 
 type Route = { kind: OptionsRoute } | { kind: "watch-detail"; watchId: string };
 
@@ -16,6 +17,7 @@ function parseHash(): Route {
   if (match) return { kind: "watch-detail", watchId: match[1]! };
   if (window.location.hash === "#/offers") return { kind: "offers" };
   if (window.location.hash === "#/settings") return { kind: "settings" };
+  if (window.location.hash === "#/diagnostics") return { kind: "diagnostics" };
   return { kind: "watches" };
 }
 
@@ -100,6 +102,7 @@ export function OptionsApp() {
           />
         )}
         {route.kind === "offers" && <OffersScreen watches={watches} />}
+        {route.kind === "diagnostics" && <DiagnosticsScreen />}
         {route.kind === "settings" && (
           <SettingsScreen
             settings={settings}

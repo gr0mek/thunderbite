@@ -1,4 +1,4 @@
-import { SiteHealthSchema, type SiteHealth } from "@/shared/schemas";
+import { SiteHealthSchema, type ScanErrorCode, type SiteHealth } from "@/shared/schemas";
 import type { SiteId } from "@/adapters/types";
 import type { RootStore } from "./rootStore";
 
@@ -18,9 +18,15 @@ export class SiteHealthRepo {
     return (await this.list()).find((h) => h.site === site) as SiteHealth;
   }
 
+  /** Keeps the last error's code/message so the diagnostics screen can
+   * still show what went wrong after the site recovered. */
   async recordSuccess(site: SiteId): Promise<SiteHealth> {
+    const current = await this.get(site);
     return this.set(site, {
       site,
+      lastErrorCode: current.lastErrorCode,
+      lastErrorMessage: current.lastErrorMessage,
+      lastErrorAt: current.lastErrorAt,
       status: "ok",
       lastSuccessAt: new Date().toISOString(),
       consecutiveErrors: 0,
@@ -31,11 +37,19 @@ export class SiteHealthRepo {
    * §7: 3 consecutive failures ⇒ broken; anything before that is degraded
    * so a single blip doesn't panic the UI.
    */
-  async recordError(site: SiteId): Promise<SiteHealth> {
+  async recordError(
+    site: SiteId,
+    error?: { code: ScanErrorCode; message: string },
+  ): Promise<SiteHealth> {
     const current = await this.get(site);
     const consecutiveErrors = current.consecutiveErrors + 1;
     return this.set(site, {
       ...current,
+      ...(error && {
+        lastErrorCode: error.code,
+        lastErrorMessage: error.message.slice(0, 500),
+        lastErrorAt: new Date().toISOString(),
+      }),
       status: consecutiveErrors >= 3 ? "broken" : "degraded",
       consecutiveErrors,
       since: current.since ?? new Date().toISOString(),

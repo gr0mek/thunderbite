@@ -35,6 +35,9 @@ import { ChromeLocalStore } from "@/storage/local";
 import { createStorage } from "@/storage";
 import { Logger } from "@/shared/logger";
 import type { SearchContext } from "@/adapters/searchContext";
+import { runHealthChecks } from "@/core/healthcheck";
+import { collectEnvironment } from "./diagnostics";
+import { installVintedHeaderRule } from "./vintedHeaders";
 
 // See docs/adr-003-vinted-adapter.md. Everything downstream only depends
 // on the SiteAdapter interface.
@@ -63,8 +66,16 @@ const lifecycleDeps: LifecycleDeps = {
   rateLimiter,
   notifier,
   logger,
+  scans: storage.scans,
   siteFloorsMinutes,
 };
+
+// Session rules are wiped on browser restart; re-install on every wake-up.
+void installVintedHeaderRule().catch((err: unknown) =>
+  logger.error("Failed to install Vinted header rule", {
+    error: err instanceof Error ? err.message : String(err),
+  }),
+);
 
 async function runWatchAndReschedule(watchId: string): Promise<void> {
   const watch = await storage.watches.get(watchId);
@@ -95,6 +106,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
       offers: storage.offers,
       settings: storage.settings,
       logger,
+      scans: storage.scans,
     });
     return;
   }
@@ -147,6 +159,16 @@ async function handleMessage(
       return undefined;
     case "quickAdd/get":
       return quickAddByTab.get(request.tabId) ?? null;
+    case "diag/testConnection":
+      await installVintedHeaderRule().catch(() => false);
+      return runHealthChecks({
+        adapters,
+        siteHealth: storage.siteHealth,
+        logger,
+        scans: storage.scans,
+      });
+    case "diag/environment":
+      return collectEnvironment();
   }
 }
 

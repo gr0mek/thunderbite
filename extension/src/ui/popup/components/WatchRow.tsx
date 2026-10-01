@@ -73,7 +73,23 @@ export function WatchRow({
         <div class="text-meta">{copy.watchTile.paused}</div>
       ) : problemSite ? (
         <div class="text-meta" style={{ color: "var(--warn)" }}>
-          ⚠ {copy.watchTile.problem(copy.siteNames[problemSite.site])}
+          ⚠{" "}
+          {copy.watchTile.problem(
+            copy.siteNames[problemSite.site],
+            problemSite.lastErrorCode,
+          )}{" "}
+          <button
+            type="button"
+            class="link-button"
+            onClick={(e) => {
+              e.stopPropagation();
+              void chrome.tabs.create({
+                url: chrome.runtime.getURL("src/ui/options/index.html#/diagnostics"),
+              });
+            }}
+          >
+            {copy.diagnostics.details}
+          </button>
         </div>
       ) : (
         <div class="fx ac gap2">
