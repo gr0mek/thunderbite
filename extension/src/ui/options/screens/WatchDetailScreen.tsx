@@ -111,7 +111,14 @@ export function WatchDetailScreen({ watchId, onBack, onEdit }: WatchDetailScreen
       {problemSite && (
         <div class="banner banner--warn">
           <span>
-            ⚠ <strong>{copy.watchTile.problem(copy.siteNames[problemSite.site])}</strong>
+            ⚠{" "}
+            <strong>
+              {copy.watchTile.problem(
+                copy.siteNames[problemSite.site],
+                problemSite.lastErrorCode,
+              )}
+            </strong>{" "}
+            <a href="#/diagnostics">{copy.diagnostics.details}</a>
           </span>
         </div>
       )}

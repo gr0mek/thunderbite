@@ -27,7 +27,20 @@ export default defineManifest({
     service_worker: "src/background/index.ts",
     type: "module",
   },
-  permissions: ["storage", "alarms", "notifications", "offscreen"],
+  // scripting: fetch through an open Vinted tab when Vinted refuses the
+  // service worker; declarativeNetRequestWithHostAccess: strip the
+  // extension Origin header from our own Vinted requests; cookies: show
+  // (names only) whether a Vinted session exists, on the diagnostics screen.
+  // See docs/adr-004-vinted-fetch-fallback-and-diagnostics.md.
+  permissions: [
+    "storage",
+    "alarms",
+    "notifications",
+    "offscreen",
+    "scripting",
+    "declarativeNetRequestWithHostAccess",
+    "cookies",
+  ],
   // Scoped strictly to the tracked marketplace + backend, per
   // startSmartBuy.md §6 rule 9 (host_permissions MUST NOT be broader).
   host_permissions: [...SITE_HOSTS, "https://*.supabase.co/*"],

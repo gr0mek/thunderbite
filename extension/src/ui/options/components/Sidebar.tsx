@@ -2,7 +2,7 @@ import { copy } from "@/shared/copy.pl";
 import { BrandMark } from "@/ui/shared/BrandMark";
 import { useSiteHealth } from "@/ui/shared/dataHooks";
 
-export type OptionsRoute = "watches" | "offers" | "settings";
+export type OptionsRoute = "watches" | "offers" | "settings" | "diagnostics";
 
 interface SidebarProps {
   active: OptionsRoute;
@@ -39,6 +39,13 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
         >
           {copy.optionsNav.settings}
         </button>
+        <button
+          type="button"
+          class={`options-nav-item ${active === "diagnostics" ? "options-nav-item--active" : ""}`}
+          onClick={() => onNavigate("diagnostics")}
+        >
+          {copy.optionsNav.diagnostics}
+        </button>
       </nav>
       <div style={{ height: 1, background: "var(--line)" }} />
       <div class="col gap2">
@@ -54,6 +61,16 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
             {h.status === "ok"
               ? copy.settings.serviceWorking
               : copy.settings.serviceProblem}
+            {h.status !== "ok" && h.lastErrorCode && (
+              <button
+                type="button"
+                class="code-badge"
+                title={copy.scanErrors[h.lastErrorCode].title}
+                onClick={() => onNavigate("diagnostics")}
+              >
+                {h.lastErrorCode}
+              </button>
+            )}
           </span>
         ))}
       </div>

@@ -60,6 +60,7 @@ export function SettingsScreen({
         settings: SettingsSchema.parse({}),
         siteHealth: [],
         logs: [],
+        scans: [],
       });
       onAllDataDeleted();
     } finally {
@@ -179,7 +180,7 @@ export function SettingsScreen({
                   ? h.lastSuccessAt
                     ? `${copy.settings.serviceWorking} · ${copy.settings.lastSuccessfulCheck(formatRelativeTime(h.lastSuccessAt))} · ${copy.settings.errorCount(0)}`
                     : copy.settings.serviceWorking
-                  : `${copy.settings.problemSince(h.since ? formatRelativeTime(h.since) : "—")} · ${copy.settings.errorCount(h.consecutiveErrors)}`}
+                  : `${copy.settings.problemSince(h.since ? formatRelativeTime(h.since) : "—")} · ${copy.settings.errorCount(h.consecutiveErrors)}${h.lastErrorCode ? ` · ${copy.settings.lastErrorCode(h.lastErrorCode)}` : ""}`}
               </span>
             </div>
           ))}

@@ -5,13 +5,21 @@ import {
   type SiteAdapter,
   type SiteId,
 } from "@/adapters/types";
-import { OfferRecordSchema, type OfferRecord, type Watch } from "@/shared/schemas";
+import {
+  OfferRecordSchema,
+  type OfferRecord,
+  type RequestTrace,
+  type ScanRecord,
+  type Watch,
+} from "@/shared/schemas";
+import { toScanError, type ScanError } from "@/shared/scanErrors";
 import type { Notifier } from "@/background/notifier";
 import type { SiteRateLimiter } from "@/background/rateLimiter";
 import type { Logger } from "@/shared/logger";
 import type { OfferRepo } from "@/storage/offerRepo";
 import type { SiteHealthRepo } from "@/storage/siteHealthRepo";
 import type { WatchRepo } from "@/storage/watchRepo";
+import type { ScanLogRepo } from "@/storage/scanLogRepo";
 import { filterOffers } from "./matcher";
 
 export interface CheckWatchDeps {
@@ -22,6 +30,8 @@ export interface CheckWatchDeps {
   rateLimiter: SiteRateLimiter;
   notifier: Notifier;
   logger: Logger;
+  /** Diagnostics log; optional so tests can skip it. */
+  scans?: ScanLogRepo | undefined;
 }
 
 export function watchToSearchQuery(watch: Watch): SearchQuery {
@@ -47,28 +57,33 @@ export async function checkWatch(watch: Watch, deps: CheckWatchDeps): Promise<vo
   const query = watchToSearchQuery(watch);
   const isBaseline = !watch.baselineCompletedAt;
 
-  const perSite = await Promise.allSettled(
-    watch.sites.map(async (site): Promise<NormalizedOffer[]> => {
+  const startedAt = new Date().toISOString();
+  const started = Date.now();
+  const perSite = await Promise.all(
+    watch.sites.map(async (site) => {
       const adapter = deps.adapters[site];
       const controller = new AbortController();
+      const requests: RequestTrace[] = [];
       try {
         const offers = await deps.rateLimiter.run(site, adapter.minIntervalMs, () =>
-          adapter.search(query, controller.signal),
+          adapter.search(query, controller.signal, (r) => requests.push(r)),
         );
         await deps.siteHealth.recordSuccess(site);
-        return offers;
+        return { site, offers, requests, error: undefined as ScanError | undefined };
       } catch (err) {
-        await deps.siteHealth.recordError(site);
-        deps.logger.error(`Adapter ${site} search failed`, {
+        const error = toScanError(err);
+        await deps.siteHealth.recordError(site, error);
+        deps.logger.error(`Adapter ${site} search failed [${error.code}]`, {
           watchId: watch.id,
-          error: err instanceof Error ? err.message : String(err),
+          code: error.code,
+          error: error.message,
         });
-        return [];
+        return { site, offers: [] as NormalizedOffer[], requests, error };
       }
     }),
   );
 
-  const allOffers = perSite.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
+  const allOffers = perSite.flatMap((r) => r.offers);
   const matched = filterOffers(watch, allOffers);
 
   const foundAt = new Date().toISOString();
@@ -102,4 +117,30 @@ export async function checkWatch(watch: Watch, deps: CheckWatchDeps): Promise<vo
   }
 
   await deps.watches.markChecked(watch.id);
+
+  if (deps.scans) {
+    const durationMs = Date.now() - started;
+    for (const r of perSite) {
+      const siteMatched = matched.filter((o) => o.site === r.site).length;
+      const siteInserted = inserted.filter((o) => o.site === r.site).length;
+      const record: ScanRecord = {
+        id: crypto.randomUUID(),
+        kind: "watch",
+        site: r.site,
+        watchId: watch.id,
+        watchName: watch.name,
+        startedAt,
+        durationMs,
+        ok: !r.error,
+        baseline: isBaseline,
+        fetched: r.offers.length,
+        matched: siteMatched,
+        inserted: siteInserted,
+        errorCode: r.error?.code,
+        errorMessage: r.error?.message.slice(0, 500),
+        requests: r.requests,
+      };
+      await deps.scans.append(record);
+    }
+  }
 }

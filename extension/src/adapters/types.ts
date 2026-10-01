@@ -1,6 +1,12 @@
 // Shared adapter contract — startSmartBuy.md §5. Every marketplace adapter
 // implements this and nothing else talks to a marketplace directly.
 
+import type { RequestTrace } from "@/shared/schemas";
+
+export type { RequestTrace };
+/** Optional per-request diagnostics sink (scan log, see core/checkWatch.ts). */
+export type RequestObserver = (trace: RequestTrace) => void;
+
 export type SiteId = "vinted";
 
 export interface SearchQuery {
@@ -40,8 +46,14 @@ export interface SiteAdapter {
   id: SiteId;
   /** Hard floor for this site, independent of the user's chosen interval. */
   minIntervalMs: number;
-  search(query: SearchQuery, signal: AbortSignal): Promise<NormalizedOffer[]>;
-  healthCheck(): Promise<AdapterHealth>;
+  /** Throws on failure — preferably a ScanError (shared/scanErrors.ts) so
+   * the scan log gets a meaningful code. */
+  search(
+    query: SearchQuery,
+    signal: AbortSignal,
+    onRequest?: RequestObserver,
+  ): Promise<NormalizedOffer[]>;
+  healthCheck(onRequest?: RequestObserver): Promise<AdapterHealth>;
 }
 
 /** Deduplication key — `${site}:${externalId}`, per startSmartBuy.md §5. */

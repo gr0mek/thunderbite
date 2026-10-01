@@ -1,6 +1,7 @@
 import type { SiteId } from "@/adapters/types";
 import type { SearchContext } from "@/adapters/searchContext";
-import type { Watch } from "@/shared/schemas";
+import type { ScanRecord, Watch } from "@/shared/schemas";
+import type { DiagnosticsEnvironment } from "./diagnostics";
 
 // Only watch-lifecycle actions that touch chrome.alarms/adapters go through
 // the background — everything read-only or storage-only (listing watches,
@@ -16,7 +17,9 @@ export type BackgroundRequest =
   | { type: "watch/resume"; watchId: string }
   | { type: "watch/delete"; watchId: string }
   | { type: "quickAdd/detected"; site: SiteId; context: SearchContext }
-  | { type: "quickAdd/get"; tabId: number };
+  | { type: "quickAdd/get"; tabId: number }
+  | { type: "diag/testConnection" }
+  | { type: "diag/environment" };
 
 export type BackgroundResponse<T = unknown> =
   { ok: true; data: T } | { ok: false; error: string };
@@ -62,3 +65,8 @@ export async function getQuickAddContext(): Promise<{
     tabId: tab.id,
   });
 }
+
+export const testConnection = () =>
+  sendToBackground<ScanRecord[]>({ type: "diag/testConnection" });
+export const getDiagnosticsEnvironment = () =>
+  sendToBackground<DiagnosticsEnvironment>({ type: "diag/environment" });

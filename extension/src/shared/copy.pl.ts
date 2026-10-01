@@ -5,6 +5,15 @@
 // Product name is "Thunder Bait" (renamed from "Smart Buy" mid-design, see
 // chats/chat1.md) — every string below uses the new name.
 
+/** "1 oferta", "3 oferty", "5 ofert", "22 oferty", "12 ofert". */
+function offersCount(n: number): string {
+  if (n === 1) return "1 oferta";
+  const lastTwo = n % 100;
+  const last = n % 10;
+  const few = last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14);
+  return `${n} ${few ? "oferty" : "ofert"}`;
+}
+
 export const copy = {
   brand: {
     name: "Thunder Bait",
@@ -43,7 +52,8 @@ export const copy = {
     newBadge: (n: number) => `${n} nowe`,
     checkedAgo: (rel: string) => `sprawdzono ${rel}`,
     paused: "Wstrzymana",
-    problem: (site: string) => `${site}: problem z pobieraniem`,
+    problem: (site: string, code?: string) =>
+      `${site}: problem z pobieraniem${code ? ` (${code})` : ""}`,
   },
 
   watchMenu: {
@@ -119,6 +129,7 @@ export const copy = {
     watches: "Obserwacje",
     offers: "Oferty",
     settings: "Ustawienia",
+    diagnostics: "Diagnostyka",
   },
 
   watchesTable: {
@@ -171,6 +182,7 @@ export const copy = {
     serviceProblem: "problem z pobieraniem",
     lastSuccessfulCheck: (rel: string) => `ostatnie udane sprawdzenie ${rel}`,
     problemSince: (time: string) => `problem z pobieraniem od ${time}`,
+    lastErrorCode: (code: string) => `kod błędu ${code}`,
     errorCount: (n: number) =>
       `${n} ${n === 1 ? "błąd" : n < 5 ? "błędy" : "błędów"}${n > 0 ? " z rzędu" : ""}`,
     dataSection: "Dane",
@@ -181,6 +193,114 @@ export const copy = {
       "Obserwacje, oferty i ustawienia zostaną trwale usunięte z tej przeglądarki. Tej operacji nie można cofnąć.",
     deleteAllDataConfirmCta: "Usuń wszystko",
     cancel: "Anuluj",
+  },
+
+  // Stable diagnostic codes (shared/schemas.ts SCAN_ERROR_CODES): what
+  // happened, and what the user can try.
+  scanErrors: {
+    "VNT-401": {
+      title: "Brak sesji Vinted (HTTP 401)",
+      hint: "Otwórz vinted.pl w tej przeglądarce, odśwież stronę i kliknij „Test połączenia”.",
+    },
+    "VNT-403": {
+      title: "Vinted zablokował zapytanie (HTTP 403, ochrona antybotowa)",
+      hint: "Zostaw otwartą kartę vinted.pl — rozszerzenie pobierze wyniki przez nią. Jeśli Vinted pokazuje captchę, rozwiąż ją.",
+    },
+    "VNT-404": {
+      title: "Nie znaleziono adresu API (HTTP 404)",
+      hint: "Vinted mógł zmienić API. Skopiuj raport i zgłoś problem.",
+    },
+    "VNT-429": {
+      title: "Za dużo zapytań (HTTP 429)",
+      hint: "Vinted ogranicza tempo. Wydłuż odstęp sprawdzania lub wstrzymaj część obserwacji.",
+    },
+    "VNT-5XX": {
+      title: "Błąd serwera Vinted (HTTP 5xx)",
+      hint: "Zwykle przejściowe — kolejne sprawdzenie spróbuje ponownie.",
+    },
+    "VNT-HTTP": {
+      title: "Nieoczekiwany status HTTP",
+      hint: "Skopiuj raport i zgłoś problem.",
+    },
+    "VNT-NET": {
+      title: "Błąd sieci",
+      hint: "Sprawdź połączenie, VPN i blokery reklam (mogą blokować vinted.pl).",
+    },
+    "VNT-TIMEOUT": {
+      title: "Vinted nie odpowiedział w 20 s",
+      hint: "Zwykle przejściowe. Jeśli się powtarza, sprawdź połączenie.",
+    },
+    "VNT-JSON": {
+      title: "Odpowiedź nie jest danymi (np. strona captcha)",
+      hint: "Otwórz vinted.pl, rozwiąż ewentualną captchę i zostaw kartę otwartą.",
+    },
+    "VNT-SHAPE": {
+      title: "Nieznany format odpowiedzi Vinted",
+      hint: "Vinted zmienił API. Skopiuj raport i zgłoś problem.",
+    },
+    "VNT-EMPTY": {
+      title: "Vinted zwrócił pustą listę ofert",
+      hint: "Jeśli się powtarza, skopiuj raport i zgłoś problem.",
+    },
+    "APP-UNKNOWN": {
+      title: "Nieznany błąd aplikacji",
+      hint: "Skopiuj raport i zgłoś problem.",
+    },
+  },
+
+  diagnostics: {
+    title: "Diagnostyka",
+    intro:
+      "Szczegóły ostatnich skanów Vinted. Gdy coś nie działa, kod błędu i raport pomagają ustalić przyczynę.",
+    statusSection: "Stan połączenia",
+    statusOk: "działa",
+    statusProblem: "problem z pobieraniem",
+    lastSuccess: (rel: string) => `ostatni udany skan ${rel}`,
+    neverSucceeded: "jeszcze bez udanego skanu",
+    lastError: (rel: string, code?: string) =>
+      `ostatni błąd ${rel}${code ? ` (${code})` : ""}`,
+    testConnection: "Test połączenia",
+    testing: "Testuję…",
+    testOk: (n: number) => `Połączenie działa — pobrano ${offersCount(n)}.`,
+    testFailed: (code: string) => `Test nieudany: ${code}`,
+    environmentSection: "Środowisko",
+    envVersion: "Wersja rozszerzenia",
+    envSessionCookie: "Sesja Vinted (ciasteczko access_token_web)",
+    envCookies: "Ciasteczka vinted.pl (nazwy)",
+    envTabs: "Otwarte karty vinted.pl",
+    envHeaderRule: "Reguła nagłówków (bez Origin)",
+    yes: "tak",
+    no: "nie",
+    none: "brak",
+    active: "aktywna",
+    inactive: "nieaktywna",
+    scansSection: "Log skanowania",
+    scansEmpty:
+      "Brak zapisanych skanów. Uruchom test połączenia lub poczekaj na sprawdzenie obserwacji.",
+    colTime: "Kiedy",
+    colWhat: "Co",
+    colResult: "Wynik",
+    colCounts: "Pobrano / pasuje / nowe",
+    colDuration: "Czas",
+    healthScan: "Test połączenia",
+    baseline: "pierwsze sprawdzenie",
+    ok: "OK",
+    requests: "Zapytania",
+    reqVia: { sw: "w tle", tab: "przez kartę" },
+    reqStatus: (status: number | null) =>
+      status === null ? "brak odpowiedzi" : `HTTP ${status}`,
+    reqItems: (n: number) => offersCount(n),
+    reqAttempt: (n: number) => `próba ${n}`,
+    errorMessage: "Komunikat",
+    responseStart: "Początek odpowiedzi",
+    copyReport: "Kopiuj raport",
+    copied: "Skopiowano raport do schowka",
+    clearLog: "Wyczyść log",
+    techLogSection: "Log techniczny",
+    techLogEmpty: "Brak wpisów.",
+    filterAll: "Wszystkie",
+    filterErrors: "Tylko błędy",
+    details: "Szczegóły",
   },
 
   siteNames: { vinted: "Vinted" },

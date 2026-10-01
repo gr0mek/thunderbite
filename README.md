@@ -20,7 +20,9 @@ Originally scoped for OLX, Vinted and Allegro; narrowed to Vinted only — see
 MVP: storage, scheduler, matcher/dedup, notifications, the full popup +
 options UI, and the real Vinted adapter (catalog API, modelled on
 [Vinted-Notifications](https://github.com/Fuyucch1/Vinted-Notifications)) —
-see `docs/adr-003-vinted-adapter.md`.
+see `docs/adr-003-vinted-adapter.md`. If scanning fails, the options page's
+**Diagnostyka** screen shows the scan log with error codes and can copy a
+report; see `docs/adr-004-vinted-fetch-fallback-and-diagnostics.md`.
 
 ## Quick start
 

@@ -4,6 +4,7 @@ import type { Logger } from "@/shared/logger";
 import type { OfferRepo } from "@/storage/offerRepo";
 import type { SettingsRepo } from "@/storage/settingsRepo";
 import type { SiteHealthRepo } from "@/storage/siteHealthRepo";
+import type { ScanLogRepo } from "@/storage/scanLogRepo";
 
 export const HOUSEKEEPING_ALARM_NAME = "housekeeping";
 export const HOUSEKEEPING_PERIOD_MINUTES = 30;
@@ -14,6 +15,7 @@ export interface HousekeepingDeps {
   offers: OfferRepo;
   settings: SettingsRepo;
   logger: Logger;
+  scans?: ScanLogRepo | undefined;
 }
 
 /** Runs on a fixed recurring alarm, independent of any watch's own
@@ -23,6 +25,8 @@ export async function runHousekeeping(deps: HousekeepingDeps): Promise<void> {
     adapters: deps.adapters,
     siteHealth: deps.siteHealth,
     logger: deps.logger,
+    scans: deps.scans,
+    logOnlyFailures: true,
   });
 
   const { offerRetentionDays } = await deps.settings.get();

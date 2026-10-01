@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { createStorage } from "@/storage";
 import type { OfferFilter } from "@/storage/offerRepo";
-import type { OfferRecord, SiteHealth, Watch } from "@/shared/schemas";
+import type {
+  LogEntry,
+  OfferRecord,
+  ScanRecord,
+  SiteHealth,
+  Watch,
+} from "@/shared/schemas";
 
 // One instance per extension page (popup/options each have their own JS
 // context) — all backed by the same chrome.storage.local/IndexedDB, so
@@ -91,4 +97,26 @@ export function useSiteHealth(pollMs = 5000): SiteHealth[] {
   useEffect(reload, [reload]);
   usePolling(pollMs, reload);
   return health;
+}
+
+/** Diagnostics scan log, newest first. */
+export function useScanLog(pollMs = 3000): { scans: ScanRecord[]; reload: () => void } {
+  const [scans, setScans] = useState<ScanRecord[]>([]);
+  const reload = useCallback(() => {
+    void storage.scans.list().then(setScans);
+  }, []);
+  useEffect(reload, [reload]);
+  usePolling(pollMs, reload);
+  return { scans, reload };
+}
+
+/** Technical log (Logger ring buffer), newest first. */
+export function useLogEntries(pollMs = 5000): LogEntry[] {
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const reload = useCallback(() => {
+    void storage.logs.list().then((l) => setLogs([...l].reverse()));
+  }, []);
+  useEffect(reload, [reload]);
+  usePolling(pollMs, reload);
+  return logs;
 }
