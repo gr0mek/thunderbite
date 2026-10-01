@@ -18,6 +18,8 @@ import {
   REQUEST_HEADERS,
   swFetch as defaultSwFetch,
   tabFetch as defaultTabFetch,
+  createTransportPreference,
+  type TransportPreference,
   type RawResponse,
   type SwFetch,
   type TabFetch,
@@ -28,6 +30,7 @@ export interface VintedAdapterOptions {
   swFetch?: SwFetch;
   /** null disables the open-tab fallback. */
   tabFetch?: TabFetch | null;
+  preference?: TransportPreference;
   /** Pause between the per-keyword requests of one search. */
   interRequestDelayMs?: number;
   requestTimeoutMs?: number;
@@ -39,9 +42,12 @@ export interface VintedAdapterOptions {
 /** Same budget as the reference client's `Requester.MAX_RETRIES`. */
 const MAX_ATTEMPTS = 3;
 /** Failures that mean "this transport isn't let in", worth retrying through
- * the other one. Rate limits and server errors would just repeat. */
+ * the other one. Rate limits and server errors would just repeat. 404 is
+ * here because Vinted answers an unauthenticated API call with an HTML 404
+ * page (the reference client treats 401 and 404 alike for this reason). */
 const TRANSPORT_FAILURES = new Set<ScanErrorCode>([
   "VNT-401",
+  "VNT-404",
   "VNT-403",
   "VNT-NET",
   "VNT-JSON",
@@ -113,7 +119,7 @@ export function interpretCatalogResponse(
  * browser's own Vinted cookies. Like the reference client's
  * `Requester.get`, a 401/404 means "no/expired session": load the home page
  * to get fresh cookies and retry, up to 3 attempts. If the service worker
- * still isn't let in (401/403, a non-JSON anti-bot page, network error),
+ * still isn't let in (401/403/404, a non-JSON anti-bot page, network error),
  * the same request is retried inside an open vinted.pl tab, and later
  * requests go there first for as long as that keeps working.
  */
@@ -124,7 +130,7 @@ export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAda
   const delayMs = options.interRequestDelayMs ?? 1500;
   const timeoutMs = options.requestTimeoutMs ?? 20_000;
   const sleep = options.sleep ?? abortableSleep;
-  let preferTab = false;
+  const preference = options.preference ?? createTransportPreference();
 
   async function refreshSession(signal: AbortSignal): Promise<void> {
     try {
@@ -232,7 +238,7 @@ export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAda
         attempt: 1,
         status: null,
         ms: 0,
-        note: "no open vinted.pl tab",
+        note: "no usable vinted.pl tab",
       });
       return null;
     }
@@ -269,6 +275,7 @@ export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAda
     onRequest?: RequestObserver,
   ): Promise<unknown[]> {
     const url = `${baseUrl}${CATALOG_ITEMS_PATH}?${params.toString()}`;
+    const preferTab = tab ? await preference.get().catch(() => false) : false;
     const order: Transport[] = preferTab ? ["tab", "sw"] : ["sw", "tab"];
     let firstError: ScanError | undefined;
     let noTab = false;
@@ -277,7 +284,7 @@ export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAda
       try {
         if (via === "sw") {
           const items = await viaServiceWorker(url, signal, onRequest);
-          preferTab = false;
+          if (preferTab) await preference.set(false).catch(() => undefined);
           return items;
         }
         if (!tab) continue;
@@ -286,7 +293,7 @@ export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAda
           noTab = true;
           continue;
         }
-        preferTab = true;
+        if (!preferTab) await preference.set(true).catch(() => undefined);
         return items;
       } catch (err) {
         if (signal.aborted) throw err;
@@ -298,7 +305,8 @@ export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAda
 
     const e = firstError ?? new ScanError("APP-UNKNOWN", "No transport available");
     if (noTab && TRANSPORT_FAILURES.has(e.code)) {
-      e.message += " — open a vinted.pl tab to let the extension fetch through it";
+      e.message +=
+        " — no usable vinted.pl tab to fetch through (open one and keep it open)";
     }
     throw e;
   }

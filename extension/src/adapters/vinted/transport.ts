@@ -33,8 +33,8 @@ export const swFetch: SwFetch = async (url, init) => {
 };
 
 /**
- * Runs `url` through an already-open, fully loaded Vinted tab. Resolves to
- * null when there is no such tab — this never opens one on its own.
+ * Runs `url` through an already-open Vinted tab. Resolves to null when
+ * there is no usable tab — this never opens one on its own.
  */
 export type TabFetch = (url: string) => Promise<RawResponse | null>;
 
@@ -42,9 +42,10 @@ export const tabFetch: TabFetch = async (url) => {
   if (typeof chrome === "undefined" || !chrome.scripting || !chrome.tabs) return null;
   const host = new URL(VINTED_BASE_URL).host;
   const tabs = await chrome.tabs.query({ url: `*://${host}/*` });
-  const tab = tabs.find(
-    (t) => t.id !== undefined && !t.discarded && t.status === "complete",
-  );
+  // Any live (not discarded) tab can run the script; Vinted's pages often
+  // never settle into status "complete", so only prefer one that has.
+  const live = tabs.filter((t) => t.id !== undefined && !t.discarded);
+  const tab = live.find((t) => t.status === "complete") ?? live[0];
   if (tab?.id === undefined) return null;
 
   const [injection] = await chrome.scripting.executeScript({
@@ -69,4 +70,33 @@ export async function countVintedTabs(): Promise<number> {
   if (typeof chrome === "undefined" || !chrome.tabs) return 0;
   const host = new URL(VINTED_BASE_URL).host;
   return (await chrome.tabs.query({ url: `*://${host}/*` })).length;
+}
+
+/** Whether to go through the tab first, remembered across service-worker
+ * restarts (chrome.storage.session; cleared when the browser restarts). */
+export interface TransportPreference {
+  get(): Promise<boolean>;
+  set(preferTab: boolean): Promise<void>;
+}
+
+const PREFER_TAB_KEY = "tb:vintedPreferTab";
+
+export function createTransportPreference(): TransportPreference {
+  const session = typeof chrome !== "undefined" ? chrome.storage?.session : undefined;
+  let memory = false;
+  if (!session) {
+    return {
+      get: async () => memory,
+      set: async (v) => {
+        memory = v;
+      },
+    };
+  }
+  return {
+    get: async () => (await session.get(PREFER_TAB_KEY))[PREFER_TAB_KEY] === true,
+    set: async (v) => {
+      memory = v;
+      await session.set({ [PREFER_TAB_KEY]: v });
+    },
+  };
 }

@@ -231,8 +231,45 @@ describe("createVintedAdapter", () => {
       .search(query, signal(), (t) => traces.push(t))
       .catch((e: unknown) => e)) as ScanError;
     expect(err.code).toBe("VNT-403");
-    expect(err.message).toMatch(/open a vinted\.pl tab/);
-    expect(traces.at(-1)).toMatchObject({ via: "tab", note: "no open vinted.pl tab" });
+    expect(err.message).toMatch(/no usable vinted\.pl tab/);
+    expect(traces.at(-1)).toMatchObject({ via: "tab", note: "no usable vinted.pl tab" });
+  });
+
+  it("treats Vinted's unauthenticated 404 page as a reason to use the tab", async () => {
+    const sw = swReturning(
+      status(404, "<!DOCTYPE html><title>La page n'existe pas</title>"),
+    );
+    const tabFetch = vi.fn<TabFetch>(async () => ok());
+    const adapter = createVintedAdapter({ swFetch: sw.fn, tabFetch, sleep: noSleep });
+    expect(await adapter.search(query, signal())).toHaveLength(2);
+    // 3 catalog attempts + 2 session refreshes, then the tab.
+    expect(sw.calls).toHaveLength(5);
+    expect(tabFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("remembers the tab preference across service-worker restarts", async () => {
+    let stored = false;
+    const preference = {
+      get: async () => stored,
+      set: async (v: boolean) => {
+        stored = v;
+      },
+    };
+    const tabFetch = vi.fn<TabFetch>(async () => ok());
+    const first = createVintedAdapter({
+      swFetch: swReturning(status(401)).fn,
+      tabFetch,
+      preference,
+      sleep: noSleep,
+    });
+    await first.search(query, signal());
+    expect(stored).toBe(true);
+
+    // A fresh adapter (new worker) goes straight to the tab.
+    const sw = swReturning(status(401));
+    const second = createVintedAdapter({ swFetch: sw.fn, tabFetch, preference });
+    await second.search(query, signal());
+    expect(sw.calls).toHaveLength(0);
   });
 
   it("does not fall back on rate limiting", async () => {
