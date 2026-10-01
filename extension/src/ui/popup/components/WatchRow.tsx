@@ -3,6 +3,9 @@ import { formatPrice, formatRelativeTime } from "@/shared/format";
 import type { SiteHealth, Watch } from "@/shared/schemas";
 import { Menu } from "@/ui/shared/Menu";
 import { Toggle } from "@/ui/shared/Toggle";
+import { DealBar } from "@/ui/shared/DealBar";
+import { MARKET_MIN_SAMPLE } from "@/shared/schemas";
+import { dealThreshold } from "@/core/market";
 
 interface WatchRowProps {
   watch: Watch;
@@ -32,8 +35,18 @@ export function WatchRow({
     .map((s) => siteHealth.find((h) => h.site === s))
     .find((h) => h && h.status !== "ok");
 
+  const deal = watch.deal?.enabled ? watch.deal : undefined;
   const metaParts = [
-    watch.priceMax !== undefined ? `do ${formatPrice(watch.priceMax)}` : null,
+    deal
+      ? watch.market
+        ? copy.deal.rowMeta(
+            formatPrice(dealThreshold(watch.market.median, deal.thresholdPct)),
+            formatPrice(watch.market.median),
+            watch.market.sampleSize,
+          )
+        : copy.deal.marketLearningShort(0, MARKET_MIN_SAMPLE)
+      : null,
+    !deal && watch.priceMax !== undefined ? `do ${formatPrice(watch.priceMax)}` : null,
     watch.sites.map((s) => copy.siteInitial[s]).join(" "),
     `co ${copy.form.intervalPreset(watch.checkIntervalMinutes)}`,
   ].filter(Boolean);
@@ -53,6 +66,7 @@ export function WatchRow({
           {watch.name}
         </button>
         <span class="fx ac gap2 noshrink" onClick={(e) => e.stopPropagation()}>
+          {deal && <span class="deal-pill deal-pill--mode">{copy.deal.modePill}</span>}
           <Toggle
             checked={!watch.paused}
             onChange={(next) => onTogglePaused(!next)}
@@ -69,6 +83,9 @@ export function WatchRow({
         </span>
       </div>
       <div class="text-meta">{metaParts.join(" · ")}</div>
+      {deal && watch.market && (
+        <DealBar median={watch.market.median} thresholdPct={deal.thresholdPct} />
+      )}
       {watch.paused ? (
         <div class="text-meta">{copy.watchTile.paused}</div>
       ) : problemSite ? (

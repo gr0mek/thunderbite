@@ -18,10 +18,20 @@ export function OfferRow({ offer, watchName, onOpen, onHide }: OfferRowProps) {
     // interactive element together with the real "Ukryj" button would trip
     // axe's nested-interactive (WCAG) check. The title block is its own
     // real button, so opening the offer works from mouse and keyboard.
-    <div class="popup-offer-row">
+    <div class={`popup-offer-row ${offer.dealKind === "deal" ? "deal-row" : ""}`}>
       <span class="thumb" />
       <button type="button" class="offer-row-trigger" onClick={onOpen}>
         <OfferTitleBlock offer={offer} watchName={watchName} />
+        {offer.dealKind && offer.discountPct !== undefined && (
+          <span
+            class={`deal-pill ${offer.dealKind === "suspicious" ? "deal-pill--suspicious" : ""}`}
+            style={{ marginTop: 2 }}
+          >
+            {offer.dealKind === "deal"
+              ? copy.deal.discount(offer.discountPct)
+              : copy.deal.suspiciousPill(offer.discountPct)}
+          </span>
+        )}
       </button>
       <div class="col gap1" style={{ alignItems: "flex-end" }}>
         <span
@@ -30,6 +40,9 @@ export function OfferRow({ offer, watchName, onOpen, onHide }: OfferRowProps) {
         >
           {formatPrice(offer.price)}
         </span>
+        {offer.marketPrice !== undefined && (
+          <span class="deal-was">≈ {formatPrice(offer.marketPrice)}</span>
+        )}
         {offer.state === "hidden" ? null : offer.state === "seen" ? (
           <span class="text-meta">{copy.offerRow.seenLabel}</span>
         ) : (

@@ -18,6 +18,8 @@
   /* --tag is a fill only (never text on light bg — contrast too low). */
   --on-tag: #16181d;
   --on-action: #ffffff;
+  /* Background tint for deal-mode highlights (always with a --tag edge). */
+  --deal-bg: #fff8e1;
 
   --font-family: Manrope, system-ui, sans-serif;
 
@@ -47,10 +49,12 @@
     --warn: #e0a13a;
     --danger: #f07167;
     --on-action: #16181d;
+    --deal-bg: #2a2410;
   }
 }
 
 :root[data-theme="dark"] {
+  --deal-bg: #2a2410;
   --bg: #16181d;
   --surface: #1f2229;
   --ink: #ecedef;
@@ -64,6 +68,7 @@
 }
 
 :root[data-theme="light"] {
+  --deal-bg: #fff8e1;
   --bg: #ffffff;
   --surface: #f3f4f6;
   --ink: #1b1e24;

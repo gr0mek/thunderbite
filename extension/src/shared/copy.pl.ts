@@ -249,6 +249,56 @@ export const copy = {
     },
   },
 
+  deal: {
+    modeTitle: "🔥 Tryb okazji",
+    modeDescription: "Powiadamiaj tylko o ofertach dużo poniżej wartości rynkowej",
+    modePill: "🔥 tryb okazji",
+    marketValueLabel: "Wartość rynkowa",
+    marketAuto: (median: string, n: number, low: string, high: string) =>
+      `≈ ${median} · mediana z ${n} ofert (30 dni) · typowo ${low}–${high}`,
+    marketLearning: "Policzę automatycznie z ofert na Vinted przy pierwszym sprawdzeniu.",
+    marketLearningShort: (n: number, min: number) => `uczę się cen (${n}/${min} ofert)`,
+    thresholdLabel: "Okazja to cena poniżej",
+    thresholdPreset: (pct: number) => `${pct}%`,
+    thresholdResult: (price: string) => `Powiadomię o ofertach poniżej ${price}`,
+    thresholdResultPct: (pct: number) =>
+      `Powiadomię o ofertach poniżej ${pct}% wartości rynkowej`,
+    excludesLabel: "Pomijaj",
+    rowMeta: (threshold: string, median: string, n: number) =>
+      `poniżej ${threshold} · mediana ${median} z ${n} ofert`,
+    discount: (pct: number) => `−${pct}%`,
+    suspiciousPill: (pct: number) => `−${pct}% · sprawdź`,
+    sectionDeals: "🔥 Okazje",
+    sectionSuspicious: "⚠ Podejrzanie tanie",
+    sectionOther: "Pozostałe",
+    tileMarket: "Wartość rynkowa",
+    tileMarketSub: "mediana, automatyczna",
+    tileRange: "Typowy zakres",
+    tileRangeSub: "środkowe 50% ofert",
+    tileThreshold: (pct: number) => `Próg okazji (${pct}%)`,
+    tileThresholdSub: "powiadomienie poniżej",
+    tileSample: "Próbka",
+    tileSampleValue: (n: number) => `${n} ofert`,
+    tileSampleSub: "ostatnie 30 dni",
+    chartTitle: "Ceny ofert z 30 dni",
+    chartLegendOffer: "oferta",
+    chartLegendDeal: "okazja",
+    chartLegendZone: "strefa okazji",
+    chartMedian: (median: string) => `mediana ${median}`,
+    chartThreshold: (price: string) => `próg ${price}`,
+    chartSuspicious: "podejrzanie tanie",
+    chartLabel: (n: number, median: string, threshold: string) =>
+      `Ceny ${n} ofert; mediana ${median}; próg okazji ${threshold}`,
+    chartEmpty:
+      "Za mało ofert, żeby policzyć wartość rynkową. Pojawi się po kolejnych sprawdzeniach.",
+    dealsTitle: "Złapane okazje",
+    dealsEmpty: "Jeszcze żadnej okazji. Powiadomię, gdy się pojawi.",
+    colWhen: "Kiedy",
+    colOffer: "Oferta",
+    colPrice: "Cena",
+    colDiscount: "Rabat",
+  },
+
   diagnostics: {
     title: "Diagnostyka",
     intro:
@@ -340,6 +390,10 @@ export const copy = {
       `${site} · ${location} — z obserwacji „${watchName}”`,
     grouped: (n: number, watchName: string) => `${n} nowych ofert · ${watchName}`,
     groupedBody: (fromPrice: string, sites: string) => `od ${fromPrice}, ${sites}`,
+    deal: (price: string, title: string) => `🔥 ${price} · ${title}`,
+    dealBody: (discount: number, median: string, site: string) =>
+      `−${discount}% vs mediana ${median} · ${site}`,
+    dealGrouped: (n: number, watchName: string) => `🔥 ${n} okazji · ${watchName}`,
     open: "Otwórz",
     hide: "Ukryj",
   },

@@ -484,3 +484,93 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* Deal mode ("tryb okazji") */
+.deal-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.deal-card--on {
+  border-color: var(--tag);
+  box-shadow: 0 0 0 1px var(--tag);
+}
+.deal-result {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-field);
+  background: var(--deal-bg);
+  font: 600 13px/18px var(--font-family);
+  color: var(--ink);
+}
+.deal-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--tag);
+  color: var(--on-tag);
+  font: 700 11px/16px var(--font-family);
+  white-space: nowrap;
+}
+.deal-pill--suspicious {
+  background: none;
+  border: 1px solid var(--warn);
+  color: var(--warn);
+}
+.deal-pill--mode {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink-muted);
+}
+.deal-was {
+  font: 400 11px/14px var(--font-family);
+  color: var(--ink-muted);
+  text-decoration: line-through;
+  font-variant-numeric: tabular-nums;
+}
+.deal-row {
+  background: var(--deal-bg);
+  box-shadow: inset 3px 0 0 var(--tag);
+}
+.deal-bar {
+  position: relative;
+  height: 26px;
+  margin-top: 6px;
+}
+.deal-bar-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 7px;
+  height: 2px;
+  background: var(--line);
+  border-radius: 2px;
+}
+.deal-bar-zone {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  height: 8px;
+  background: var(--tag);
+  border-radius: 4px;
+}
+.deal-bar-median {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 16px;
+  background: var(--ink);
+  border-radius: 1px;
+}
+.deal-bar-label {
+  position: absolute;
+  top: 14px;
+  font: 400 10px/12px var(--font-family);
+  color: var(--ink-muted);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}

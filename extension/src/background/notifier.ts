@@ -11,20 +11,22 @@ const GROUP_THRESHOLD = 3;
 export type NotificationTarget =
   { type: "offer"; offerKey: string; url: string } | { type: "grouped"; watchId: string };
 
+export interface NotificationOptions {
+  title: string;
+  message: string;
+  iconUrl: string;
+  /** Stays on screen until the user acts (deal alerts). */
+  requireInteraction?: boolean;
+}
+
 export interface NotificationsPort {
-  create(
-    id: string,
-    options: { title: string; message: string; iconUrl: string },
-  ): Promise<void>;
+  create(id: string, options: NotificationOptions): Promise<void>;
 }
 
 const DEFAULT_ICON = "src/assets/icon-128.png";
 
 export class ChromeNotifications implements NotificationsPort {
-  create(
-    id: string,
-    options: { title: string; message: string; iconUrl: string },
-  ): Promise<void> {
+  create(id: string, options: NotificationOptions): Promise<void> {
     return new Promise((resolve, reject) => {
       chrome.notifications.create(
         id,
@@ -33,6 +35,8 @@ export class ChromeNotifications implements NotificationsPort {
           title: options.title,
           message: options.message,
           iconUrl: chrome.runtime.getURL(options.iconUrl),
+          requireInteraction: options.requireInteraction ?? false,
+          priority: options.requireInteraction ? 2 : 0,
         },
         () => (chrome.runtime.lastError ? reject(chrome.runtime.lastError) : resolve()),
       );
@@ -76,6 +80,43 @@ export class Notifier {
     }
     for (const offer of offers) {
       await this.notifySingle(watch, offer);
+    }
+  }
+
+  /**
+   * Deal mode: one sticky notification per deal (deals are rare and each
+   * one may be gone within minutes), grouped only past GROUP_THRESHOLD.
+   */
+  async notifyDeals(watch: Watch, offers: OfferRecord[]): Promise<void> {
+    if (offers.length === 0) return;
+    if (offers.length > GROUP_THRESHOLD) {
+      const id = `grouped:${watch.id}:${crypto.randomUUID()}`;
+      await this.targets.set(id, { type: "grouped", watchId: watch.id });
+      const prices = offers.map((o) => o.price).filter((p): p is number => p !== null);
+      await this.notifications.create(id, {
+        title: copy.notification.dealGrouped(offers.length, watch.name),
+        message: copy.notification.groupedBody(
+          prices.length ? formatPrice(Math.min(...prices)) : "—",
+          copy.siteNames.vinted,
+        ),
+        iconUrl: DEFAULT_ICON,
+        requireInteraction: true,
+      });
+      return;
+    }
+    for (const offer of offers) {
+      const id = `offer:${offer.key}:${crypto.randomUUID()}`;
+      await this.targets.set(id, { type: "offer", offerKey: offer.key, url: offer.url });
+      await this.notifications.create(id, {
+        title: copy.notification.deal(formatPrice(offer.price), offer.title),
+        message: copy.notification.dealBody(
+          offer.discountPct ?? 0,
+          formatPrice(offer.marketPrice ?? null),
+          copy.siteNames[offer.site],
+        ),
+        iconUrl: DEFAULT_ICON,
+        requireInteraction: true,
+      });
     }
   }
 

@@ -54,6 +54,7 @@ export function SettingsScreen({
       const all = await storage.watches.list();
       for (const w of all) await storage.offers.deleteByWatch(w.id);
       await storage.offers.deleteAll();
+      await storage.prices.deleteAll();
       await storage.root.write({
         schemaVersion: 1,
         watches: [],

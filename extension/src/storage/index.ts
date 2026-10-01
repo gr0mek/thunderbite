@@ -6,6 +6,7 @@ import { SiteHealthRepo } from "./siteHealthRepo";
 import { LogRepo } from "./logRepo";
 import { ScanLogRepo } from "./scanLogRepo";
 import { OfferRepo } from "./offerRepo";
+import { PriceRepo } from "./priceRepo";
 import { openOfferDb } from "./offerDb";
 
 /** Wires the real chrome.storage.local + IndexedDB backends together. Call
@@ -21,6 +22,7 @@ export function createStorage() {
     logs: new LogRepo(root),
     scans: new ScanLogRepo(root),
     offers: new OfferRepo(offerDb),
+    prices: new PriceRepo(offerDb),
   };
 }
 
@@ -34,6 +36,7 @@ export { SiteHealthRepo } from "./siteHealthRepo";
 export { LogRepo } from "./logRepo";
 export { ScanLogRepo } from "./scanLogRepo";
 export { OfferRepo, type OfferFilter } from "./offerRepo";
+export { PriceRepo } from "./priceRepo";
 export { MemoryStore, ChromeLocalStore, type KeyValueStore } from "./local";
 export { openOfferDb } from "./offerDb";
 export { CURRENT_SCHEMA_VERSION, migrateStorage } from "./migrations";

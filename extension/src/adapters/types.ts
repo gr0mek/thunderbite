@@ -18,6 +18,8 @@ export interface SearchQuery {
   priceMax?: number | undefined;
   location?: { city: string; radiusKm?: number | undefined } | undefined;
   condition?: "new" | "used" | "any" | undefined;
+  /** How many listings to ask for (site default when omitted). */
+  limit?: number | undefined;
   /** Site-specific extras, e.g. Vinted size. */
   extra?: Record<string, string> | undefined;
 }

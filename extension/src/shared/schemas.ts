@@ -8,6 +8,49 @@ export const SiteIdSchema = z.enum(["vinted"]);
 
 export const CHECK_INTERVAL_PRESETS_MINUTES = [5, 15, 60, 360] as const;
 export const MIN_CHECK_INTERVAL_MINUTES = 5;
+
+// Deal mode ("tryb okazji"): notify only about offers far below the
+// automatically learned market price — see core/market.ts.
+export const DEAL_INTERVAL_PRESETS_MINUTES = [2, 5, 15] as const;
+export const DEAL_MIN_CHECK_INTERVAL_MINUTES = 2;
+export const DEAL_THRESHOLD_PRESETS_PCT = [30, 40, 50] as const;
+export const DEAL_DEFAULT_THRESHOLD_PCT = 50;
+/** Offers below this % of the market price are "suspiciously cheap"
+ * (accessories, broken items, scams): shown, never notified. */
+export const DEAL_SUSPICIOUS_BELOW_PCT = 10;
+/** Market price is only trusted from this many priced listings up. */
+export const MARKET_MIN_SAMPLE = 10;
+export const MARKET_WINDOW_DAYS = 30;
+/** Listings fetched on a deal-mode watch's first check, to learn the price
+ * right away instead of over days. */
+export const DEAL_SEED_LISTINGS = 96;
+/** Pre-filled "Pomijaj" words when deal mode is switched on. */
+export const DEAL_DEFAULT_EXCLUDES = [
+  "na części",
+  "uszkodzony",
+  "nie działa",
+  "etui",
+  "pasek",
+  "instrukcja",
+  "pudełko",
+] as const;
+
+export const DealSettingsSchema = z.object({
+  enabled: z.boolean().default(false),
+  /** A deal is an offer priced at or below this % of the market price. */
+  thresholdPct: z.number().int().min(5).max(95).default(DEAL_DEFAULT_THRESHOLD_PCT),
+});
+export type DealSettings = z.infer<typeof DealSettingsSchema>;
+
+/** Market price learned from a watch's recent listings (core/market.ts). */
+export const MarketStatsSchema = z.object({
+  median: z.number().nonnegative(),
+  p25: z.number().nonnegative(),
+  p75: z.number().nonnegative(),
+  sampleSize: z.number().int().nonnegative(),
+  updatedAt: z.string().datetime(),
+});
+export type MarketStats = z.infer<typeof MarketStatsSchema>;
 export const WATCH_LIMIT = 20;
 export const OFFER_RETENTION_DAYS = 30;
 export const DEFAULT_DIGEST_HOUR = "08:00";
@@ -42,7 +85,10 @@ const WatchObjectSchema = z.object({
   location: LocationSchema.optional(),
   condition: ConditionSchema.default("any"),
   size: z.string().max(40).optional(),
-  checkIntervalMinutes: z.number().int().min(MIN_CHECK_INTERVAL_MINUTES),
+  checkIntervalMinutes: z.number().int().min(DEAL_MIN_CHECK_INTERVAL_MINUTES),
+  deal: DealSettingsSchema.optional(),
+  /** Last computed market stats (deal mode only). */
+  market: MarketStatsSchema.optional(),
   notifyBrowser: z.boolean().default(true),
   notifyEmail: EmailModeSchema.default("immediate"),
   paused: z.boolean().default(false),
@@ -56,7 +102,10 @@ const WatchObjectSchema = z.object({
 export const WatchSchema = WatchObjectSchema.refine(
   (w) => w.priceMin === undefined || w.priceMax === undefined || w.priceMin <= w.priceMax,
   { message: "Cena min. musi być niższa niż maks.", path: ["priceMin"] },
-);
+).refine((w) => w.deal?.enabled || w.checkIntervalMinutes >= MIN_CHECK_INTERVAL_MINUTES, {
+  message: `Sprawdzanie częściej niż co ${MIN_CHECK_INTERVAL_MINUTES} min tylko w trybie okazji.`,
+  path: ["checkIntervalMinutes"],
+});
 export type Watch = z.infer<typeof WatchSchema>;
 
 /** Input for creating a watch — only name is truly required (uxSmartBuy §3.1). */
@@ -68,6 +117,7 @@ export const NewWatchInputSchema = WatchObjectSchema.pick({
   location: true,
   condition: true,
   size: true,
+  deal: true,
   notifyBrowser: true,
   notifyEmail: true,
 })
@@ -80,7 +130,11 @@ export const NewWatchInputSchema = WatchObjectSchema.pick({
   .extend({
     keywords: z.array(z.string().min(1)).max(10).optional(),
     sites: z.array(SiteIdSchema).optional(),
-    checkIntervalMinutes: z.number().int().min(MIN_CHECK_INTERVAL_MINUTES).optional(),
+    checkIntervalMinutes: z
+      .number()
+      .int()
+      .min(DEAL_MIN_CHECK_INTERVAL_MINUTES)
+      .optional(),
   });
 export type NewWatchInput = z.infer<typeof NewWatchInputSchema>;
 
@@ -105,8 +159,27 @@ export const OfferRecordSchema = z.object({
   /** True if found during the silent baseline check — never notified, shown
    * under "Już dostępne" instead of counted in the new-offers badge. */
   isBaseline: z.boolean().default(false),
+  /** Deal mode only: how this offer compares to the market price. */
+  dealKind: z.enum(["deal", "suspicious"]).optional(),
+  /** Market median at the time it was found (deal mode only). */
+  marketPrice: z.number().nonnegative().optional(),
+  /** Percent below the market median, e.g. 85 for −85%. */
+  discountPct: z.number().int().optional(),
 });
 export type OfferRecord = z.infer<typeof OfferRecordSchema>;
+
+/** One listing's price as seen by a deal-mode watch (IndexedDB "prices"). */
+export const PricePointSchema = z.object({
+  key: z.string(),
+  watchId: z.string().uuid(),
+  externalId: z.string(),
+  price: z.number().nonnegative(),
+  title: z.string(),
+  url: z.string().url(),
+  firstSeenAt: z.string().datetime(),
+  lastSeenAt: z.string().datetime(),
+});
+export type PricePoint = z.infer<typeof PricePointSchema>;
 
 /**
  * Stable error codes for a failed scan — shown in the UI and copied into
