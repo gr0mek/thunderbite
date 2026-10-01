@@ -199,7 +199,7 @@ export const copy = {
   // happened, and what the user can try.
   scanErrors: {
     "VNT-401": {
-      title: "Brak sesji Vinted (HTTP 401)",
+      title: "Brak lub wygasły token sesji Vinted (HTTP 401)",
       hint: "Otwórz vinted.pl w tej przeglądarce, odśwież stronę i kliknij „Test połączenia”.",
     },
     "VNT-403": {
@@ -207,8 +207,9 @@ export const copy = {
       hint: "Zostaw otwartą kartę vinted.pl — rozszerzenie pobierze wyniki przez nią. Jeśli Vinted pokazuje captchę, rozwiąż ją.",
     },
     "VNT-404": {
-      title: "Nie znaleziono adresu API (HTTP 404)",
-      hint: "Vinted mógł zmienić API. Skopiuj raport i zgłoś problem.",
+      title:
+        "Vinted odrzucił zapytanie (HTTP 404 — tak odpowiada też przy nieważnej sesji)",
+      hint: "Zostaw otwartą kartę vinted.pl — rozszerzenie pobierze wyniki przez nią. Jeśli błąd zostaje mimo otwartej karty, skopiuj raport.",
     },
     "VNT-429": {
       title: "Za dużo zapytań (HTTP 429)",
@@ -268,7 +269,7 @@ export const copy = {
     envSessionCookie: "Sesja Vinted (ciasteczko access_token_web)",
     envCookies: "Ciasteczka vinted.pl (nazwy)",
     envTabs: "Otwarte karty vinted.pl",
-    envHeaderRule: "Reguła nagłówków (bez Origin)",
+    envHeaderRule: "Reguła nagłówków (Origin vinted.pl)",
     yes: "tak",
     no: "nie",
     none: "brak",

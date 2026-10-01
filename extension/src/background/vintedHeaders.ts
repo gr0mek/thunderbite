@@ -1,8 +1,8 @@
 // A fetch() from the service worker reaches Vinted with
 // `Origin: chrome-extension://<id>` and no Referer — an obvious non-browsing
-// request that Vinted's anti-bot layer tends to answer with 403. The
-// reference client (Vinted-Notifications) never sends an Origin at all, so
-// we strip it and set the Referer a normal page visit would have.
+// request that Vinted's anti-bot layer tends to answer with 403. Vinted's
+// own website calls api.vinted.pl with Origin/Referer www.vinted.pl, and so
+// does Vinted-Notifications' svc-catalogue client, so we send the same.
 //
 // The rule only matches requests made outside any tab (tabIds: [-1] — i.e.
 // this extension's service worker), so the user's own browsing of Vinted
@@ -19,7 +19,8 @@ export function vintedHeaderRule(): chrome.declarativeNetRequest.Rule {
       requestHeaders: [
         {
           header: "origin",
-          operation: "remove" as chrome.declarativeNetRequest.HeaderOperation,
+          operation: "set" as chrome.declarativeNetRequest.HeaderOperation,
+          value: "https://www.vinted.pl",
         },
         {
           header: "referer",

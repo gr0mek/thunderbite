@@ -1,19 +1,26 @@
 import { z } from "zod";
 import type { NormalizedOffer, SearchQuery } from "../types";
 
-// Vinted's catalog API, as used by the open-source Vinted-Notifications
-// project (github.com/Fuyucch1/Vinted-Notifications, `pyVintedVN/`) — see
-// docs/adr-003-vinted-adapter.md for what was taken from it and why.
+// Vinted's catalogue API. In September 2026 Vinted retired the legacy
+// www.vinted.<tld>/api/v2/catalog/items (it answers 404 to everything) and
+// moved the catalogue to a dedicated host behind a bearer token — see
+// docs/adr-005-vinted-svc-catalogue-api.md, which follows the migration in
+// Vinted-Notifications' fork (mariostavrou83-create/Vinted-Notifications#1):
 //
-//   GET https://<host>/api/v2/catalog/items?search_text=…&order=newest_first
-//       &per_page=…&page=1&price_from=…&price_to=…&status_ids=…
+//   GET https://api.vinted.pl/svc-catalogue/items?search_text=…
+//       &order=newest_first&page=1&per_page=…&price_from=…&price_to=…
+//       &attribute_ids[status]=…
+//   Authorization: Bearer <access_token_web cookie>
+//   x-anon-id: <anon_id cookie>
 //
-// Anonymous access works once the browser holds Vinted's session cookies,
-// which the site sets on any plain page load (the reference client does a
-// HEAD on `/` and retries on 401) — see ./index.ts.
+// Both cookies are handed out by the www host on any plain request (HEAD /),
+// so no account is needed — see ./index.ts.
 
-export const VINTED_BASE_URL = "https://www.vinted.pl";
-export const CATALOG_ITEMS_PATH = "/api/v2/catalog/items";
+/** The website: session cookies, item pages, the tab used as a fallback. */
+export const VINTED_WEB_URL = "https://www.vinted.pl";
+/** The catalogue API host. */
+export const VINTED_API_URL = "https://api.vinted.pl";
+export const CATALOG_ITEMS_PATH = "/svc-catalogue/items";
 export const PER_PAGE = 20;
 
 /**
@@ -27,22 +34,22 @@ export const STATUS_IDS = {
 } as const;
 
 /** Query params for one catalog request. Vinted's `search_text` is a single
- * phrase, so a watch's OR-keywords are searched one request each. */
+ * phrase, so a watch's OR-keywords are searched one request each. Empty
+ * values are left out: svc-catalogue answers 400 to a blank filter. */
 export function buildCatalogParams(
   keyword: string,
   query: Pick<SearchQuery, "priceMin" | "priceMax" | "condition">,
   perPage: number = PER_PAGE,
 ): URLSearchParams {
-  const params = new URLSearchParams({
-    search_text: keyword,
-    order: "newest_first",
-    page: "1",
-    per_page: String(perPage),
-  });
+  const params = new URLSearchParams();
+  if (keyword.trim()) params.set("search_text", keyword.trim());
+  params.set("order", "newest_first");
+  params.set("page", "1");
+  params.set("per_page", String(perPage));
   if (query.priceMin !== undefined) params.set("price_from", String(query.priceMin));
   if (query.priceMax !== undefined) params.set("price_to", String(query.priceMax));
   if (query.condition === "new" || query.condition === "used") {
-    params.set("status_ids", STATUS_IDS[query.condition].join(","));
+    params.set("attribute_ids[status]", STATUS_IDS[query.condition].join(","));
   }
   return params;
 }
@@ -106,7 +113,7 @@ function absoluteUrl(url: string, baseUrl: string): string | null {
 /** Maps one raw catalog item to a NormalizedOffer, or null if it's unusable. */
 export function normalizeItem(
   raw: unknown,
-  baseUrl: string = VINTED_BASE_URL,
+  baseUrl: string = VINTED_WEB_URL,
   debug = false,
 ): NormalizedOffer | null {
   const parsed = VintedItemSchema.safeParse(raw);
@@ -128,8 +135,9 @@ export function normalizeItem(
   }
 
   const imageUrl = item.photo?.url ? absoluteUrl(item.photo.url, baseUrl) : null;
-  // The reference project uses the main photo's upload timestamp as the
-  // item's listing time — the catalog response carries no other one.
+  // The legacy API's only listing time was the main photo's upload
+  // timestamp; svc-catalogue dropped it, so this is usually absent now
+  // (dedup is by id anyway — core/checkWatch.ts).
   const ts = item.photo?.high_resolution?.timestamp;
   const postedAt = typeof ts === "number" ? new Date(ts * 1000).toISOString() : undefined;
 

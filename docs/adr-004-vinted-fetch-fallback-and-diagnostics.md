@@ -89,3 +89,21 @@ follow-up.
   → 403, in-tab request → JSON). Behaviour against the real site still has to
   be confirmed by a user. The diagnostics report is how that result will
   come back.
+
+## Update 2026-10-01: first field report
+
+A user's diagnostics report showed the service worker getting 401 and 404 from
+`/api/v2/catalog/items`, where the 404 was an HTML "La page n'existe pas" page.
+The browser did hold `access_token_web`, `datadome` and the other Vinted
+cookies, and the session refresh didn't help. The reference client treats 401
+and 404 alike as "session invalid". Two things kept the tab fallback from
+helping:
+
+- `VNT-404` wasn't a fallback trigger. It is now.
+- The tab had to report `status === "complete"`, which Vinted's pages often
+  never do. Any tab that isn't discarded can be used now, and a fully loaded
+  one is still preferred.
+
+The "tab first" preference now lives in `chrome.storage.session`. It survives
+service-worker restarts, so a blocked setup doesn't spend 3 failing
+service-worker attempts and 2 home-page loads on every scan.
