@@ -12,21 +12,30 @@ import {
   CATALOG_ITEMS_PATH,
   CatalogResponseSchema,
   normalizeItem,
-  VINTED_BASE_URL,
+  VINTED_API_URL,
+  VINTED_WEB_URL,
 } from "./api";
 import {
-  REQUEST_HEADERS,
+  authHeaders,
+  readAuthFromCookies,
   swFetch as defaultSwFetch,
   tabFetch as defaultTabFetch,
   createTransportPreference,
   type TransportPreference,
   type RawResponse,
   type SwFetch,
+  type ReadAuth,
   type TabFetch,
+  type VintedAuth,
 } from "./transport";
 
 export interface VintedAdapterOptions {
-  baseUrl?: string;
+  /** Website host: session cookies, item URLs. */
+  webUrl?: string;
+  /** Catalogue API host. */
+  apiUrl?: string;
+  /** Where the bearer token / anon id come from (chrome.cookies by default). */
+  readAuth?: ReadAuth;
   swFetch?: SwFetch;
   /** null disables the open-tab fallback. */
   tabFetch?: TabFetch | null;
@@ -42,12 +51,10 @@ export interface VintedAdapterOptions {
 /** Same budget as the reference client's `Requester.MAX_RETRIES`. */
 const MAX_ATTEMPTS = 3;
 /** Failures that mean "this transport isn't let in", worth retrying through
- * the other one. Rate limits and server errors would just repeat. 404 is
- * here because Vinted answers an unauthenticated API call with an HTML 404
- * page (the reference client treats 401 and 404 alike for this reason). */
+ * the other one. Rate limits, server errors and a 404 (wrong endpoint) would
+ * just repeat. */
 const TRANSPORT_FAILURES = new Set<ScanErrorCode>([
   "VNT-401",
-  "VNT-404",
   "VNT-403",
   "VNT-NET",
   "VNT-JSON",
@@ -113,18 +120,21 @@ export function interpretCatalogResponse(
 }
 
 /**
- * The real Vinted adapter (docs/adr-003, docs/adr-004).
+ * The real Vinted adapter (docs/adr-003, -004, -005).
  *
- * Each catalog request first goes out from the service worker with the
- * browser's own Vinted cookies. Like the reference client's
- * `Requester.get`, a 401/404 means "no/expired session": load the home page
- * to get fresh cookies and retry, up to 3 attempts. If the service worker
- * still isn't let in (401/403/404, a non-JSON anti-bot page, network error),
- * the same request is retried inside an open vinted.pl tab, and later
- * requests go there first for as long as that keeps working.
+ * Each catalogue request first goes out from the service worker to
+ * api.vinted.pl with the browser's `access_token_web` cookie as a bearer
+ * token. As in Vinted-Notifications' svc-catalogue client, a 401/403 means
+ * "no/expired token": HEAD the website for fresh cookies and retry, up to 3
+ * attempts. If the service worker still isn't let in (401/403, a non-JSON
+ * anti-bot page, network error), the same request is retried inside an
+ * open vinted.pl tab, and later requests go there first for as long as
+ * that keeps working.
  */
 export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAdapter {
-  const baseUrl = options.baseUrl ?? VINTED_BASE_URL;
+  const webUrl = options.webUrl ?? VINTED_WEB_URL;
+  const apiUrl = options.apiUrl ?? VINTED_API_URL;
+  const readAuth = options.readAuth ?? readAuthFromCookies;
   const sw = options.swFetch ?? defaultSwFetch;
   const tab = options.tabFetch === undefined ? defaultTabFetch : options.tabFetch;
   const delayMs = options.interRequestDelayMs ?? 1500;
@@ -134,11 +144,9 @@ export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAda
 
   async function refreshSession(signal: AbortSignal): Promise<void> {
     try {
-      await sw(`${baseUrl}/`, {
-        credentials: "include",
-        headers: { Accept: "text/html,application/xhtml+xml,*/*;q=0.8" },
-        signal,
-      });
+      // HEAD on the website is enough to get a fresh access_token_web and
+      // anon_id (Set-Cookie), without downloading the homepage.
+      await sw(`${webUrl}/`, { method: "HEAD", credentials: "include", signal });
     } catch {
       // A failed refresh just means the retry fails too and reports why.
     }
@@ -149,14 +157,21 @@ export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAda
     signal: AbortSignal,
     onRequest?: RequestObserver,
   ): Promise<unknown[]> {
+    // The API is token-gated: make sure we hold a token before the first call.
+    let auth = await readAuth().catch((): VintedAuth => ({}));
+    if (!auth.token) {
+      await refreshSession(signal);
+      auth = await readAuth().catch((): VintedAuth => ({}));
+    }
     for (let attempt = 1; ; attempt++) {
       const started = Date.now();
       const t = withTimeout(signal, timeoutMs);
+      const noToken = !auth.token;
       let res: RawResponse;
       try {
         res = await sw(url, {
           credentials: "include",
-          headers: REQUEST_HEADERS,
+          headers: authHeaders(auth),
           signal: t.signal,
         });
       } catch (err) {
@@ -186,12 +201,14 @@ export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAda
           status: res.status,
           ms,
           items: items.length,
+          note: noToken ? "no access_token_web cookie" : undefined,
         });
         return items;
       } catch (err) {
         const e = toScanError(err);
+        // 401/403 = token missing/expired (svc-catalogue); refresh and retry.
         const retry =
-          (res.status === 401 || res.status === 404) && attempt < MAX_ATTEMPTS;
+          (res.status === 401 || res.status === 403) && attempt < MAX_ATTEMPTS;
         onRequest?.({
           url,
           via: "sw",
@@ -200,10 +217,17 @@ export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAda
           ms,
           code: e.code,
           snippet: e.details.snippet,
-          note: retry ? "session refresh + retry" : undefined,
+          note:
+            [
+              noToken ? "no access_token_web cookie" : "",
+              retry ? "token refresh + retry" : "",
+            ]
+              .filter(Boolean)
+              .join("; ") || undefined,
         });
         if (!retry) throw e;
         await refreshSession(signal);
+        auth = await readAuth().catch((): VintedAuth => ({}));
       }
     }
   }
@@ -217,7 +241,10 @@ export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAda
     const started = Date.now();
     let res: RawResponse | null;
     try {
-      res = await fetchInTab(url);
+      res = await fetchInTab(
+        url,
+        authHeaders(await readAuth().catch((): VintedAuth => ({}))),
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       onRequest?.({
@@ -274,7 +301,7 @@ export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAda
     signal: AbortSignal,
     onRequest?: RequestObserver,
   ): Promise<unknown[]> {
-    const url = `${baseUrl}${CATALOG_ITEMS_PATH}?${params.toString()}`;
+    const url = `${apiUrl}${CATALOG_ITEMS_PATH}?${params.toString()}`;
     const preferTab = tab ? await preference.get().catch(() => false) : false;
     const order: Transport[] = preferTab ? ["tab", "sw"] : ["sw", "tab"];
     let firstError: ScanError | undefined;
@@ -327,7 +354,7 @@ export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAda
         onRequest,
       );
       for (const raw of items) {
-        const offer = normalizeItem(raw, baseUrl, options.debug);
+        const offer = normalizeItem(raw, webUrl, options.debug);
         if (offer && !byId.has(offer.externalId)) byId.set(offer.externalId, offer);
       }
     }
@@ -343,7 +370,7 @@ export function createVintedAdapter(options: VintedAdapterOptions = {}): SiteAda
         new AbortController().signal,
         onRequest,
       );
-      const usable = items.filter((raw) => normalizeItem(raw, baseUrl) !== null);
+      const usable = items.filter((raw) => normalizeItem(raw, webUrl) !== null);
       return usable.length > 0 ? "ok" : "degraded";
     } catch {
       return "broken";

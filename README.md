@@ -22,7 +22,9 @@ options UI, and the real Vinted adapter (catalog API, modelled on
 [Vinted-Notifications](https://github.com/Fuyucch1/Vinted-Notifications)) —
 see `docs/adr-003-vinted-adapter.md`. If scanning fails, the options page's
 **Diagnostyka** screen shows the scan log with error codes and can copy a
-report; see `docs/adr-004-vinted-fetch-fallback-and-diagnostics.md`.
+report; see `docs/adr-004-vinted-fetch-fallback-and-diagnostics.md`. Vinted's
+September 2026 move to `api.vinted.pl/svc-catalogue` is covered in
+`docs/adr-005-vinted-svc-catalogue-api.md`.
 
 ## Quick start
 

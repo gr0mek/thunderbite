@@ -199,7 +199,7 @@ export const copy = {
   // happened, and what the user can try.
   scanErrors: {
     "VNT-401": {
-      title: "Brak sesji Vinted (HTTP 401)",
+      title: "Brak lub wygasły token sesji Vinted (HTTP 401)",
       hint: "Otwórz vinted.pl w tej przeglądarce, odśwież stronę i kliknij „Test połączenia”.",
     },
     "VNT-403": {
@@ -269,7 +269,7 @@ export const copy = {
     envSessionCookie: "Sesja Vinted (ciasteczko access_token_web)",
     envCookies: "Ciasteczka vinted.pl (nazwy)",
     envTabs: "Otwarte karty vinted.pl",
-    envHeaderRule: "Reguła nagłówków (bez Origin)",
+    envHeaderRule: "Reguła nagłówków (Origin vinted.pl)",
     yes: "tak",
     no: "nie",
     none: "brak",

@@ -8,7 +8,7 @@
 //   cookies and anti-bot state. Used when the service-worker request is
 //   refused (see ./index.ts).
 
-import { VINTED_BASE_URL } from "./api";
+import { VINTED_WEB_URL } from "./api";
 
 export interface RawResponse {
   status: number;
@@ -25,6 +25,33 @@ export const REQUEST_HEADERS: Record<string, string> = {
   "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
 };
 
+/** The anonymous (or logged-in) session svc-catalogue authenticates with. */
+export interface VintedAuth {
+  /** `access_token_web` cookie — sent as the bearer token. */
+  token?: string | undefined;
+  /** `anon_id` cookie — sent as `x-anon-id`, like the website does. */
+  anonId?: string | undefined;
+}
+
+export function authHeaders(auth: VintedAuth): Record<string, string> {
+  const headers: Record<string, string> = { ...REQUEST_HEADERS };
+  if (auth.token) headers.Authorization = `Bearer ${auth.token}`;
+  if (auth.anonId) headers["x-anon-id"] = auth.anonId;
+  return headers;
+}
+
+export type ReadAuth = () => Promise<VintedAuth>;
+
+/** Reads the session cookies with chrome.cookies (values never leave the
+ * extension except as these request headers). */
+export const readAuthFromCookies: ReadAuth = async () => {
+  if (typeof chrome === "undefined" || !chrome.cookies?.get) return {};
+  const get = async (name: string) =>
+    (await chrome.cookies.get({ url: `${VINTED_WEB_URL}/`, name }))?.value;
+  const [token, anonId] = await Promise.all([get("access_token_web"), get("anon_id")]);
+  return { token, anonId };
+};
+
 export type SwFetch = (url: string, init: RequestInit) => Promise<RawResponse>;
 
 export const swFetch: SwFetch = async (url, init) => {
@@ -36,11 +63,14 @@ export const swFetch: SwFetch = async (url, init) => {
  * Runs `url` through an already-open Vinted tab. Resolves to null when
  * there is no usable tab — this never opens one on its own.
  */
-export type TabFetch = (url: string) => Promise<RawResponse | null>;
+export type TabFetch = (
+  url: string,
+  headers: Record<string, string>,
+) => Promise<RawResponse | null>;
 
-export const tabFetch: TabFetch = async (url) => {
+export const tabFetch: TabFetch = async (url, headers) => {
   if (typeof chrome === "undefined" || !chrome.scripting || !chrome.tabs) return null;
-  const host = new URL(VINTED_BASE_URL).host;
+  const host = new URL(VINTED_WEB_URL).host;
   const tabs = await chrome.tabs.query({ url: `*://${host}/*` });
   // Any live (not discarded) tab can run the script; Vinted's pages often
   // never settle into status "complete", so only prefer one that has.
@@ -50,11 +80,12 @@ export const tabFetch: TabFetch = async (url) => {
 
   const [injection] = await chrome.scripting.executeScript({
     target: { tabId: tab.id },
-    args: [url, REQUEST_HEADERS],
-    // Runs in the page's isolated world: a same-origin fetch for Vinted.
-    func: async (target: string, headers: Record<string, string>) => {
+    args: [url, headers],
+    // Runs in the page's isolated world, so Vinted's API sees the website's
+    // own origin, cookies and anti-bot state — exactly like the site's calls.
+    func: async (target: string, hdrs: Record<string, string>) => {
       try {
-        const res = await fetch(target, { credentials: "include", headers });
+        const res = await fetch(target, { credentials: "include", headers: hdrs });
         return { status: res.status, body: await res.text() };
       } catch (err) {
         return { status: 0, body: String(err) };
@@ -68,7 +99,7 @@ export const tabFetch: TabFetch = async (url) => {
 /** Number of open Vinted tabs the "tab" transport could use (diagnostics). */
 export async function countVintedTabs(): Promise<number> {
   if (typeof chrome === "undefined" || !chrome.tabs) return 0;
-  const host = new URL(VINTED_BASE_URL).host;
+  const host = new URL(VINTED_WEB_URL).host;
   return (await chrome.tabs.query({ url: `*://${host}/*` })).length;
 }
 
