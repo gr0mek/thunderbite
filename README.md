@@ -1,11 +1,12 @@
 # Thunder Bait
 
-Open-source Vinted deal monitor: a Chrome MV3 extension that watches Vinted
-for offers matching your saved searches and notifies you (browser + email)
-when one shows up.
+Open-source deal monitor: a Chrome MV3 extension that watches Vinted and
+eBay (ebay.com) for offers matching your saved searches and notifies you
+(browser + email) when one shows up.
 
-Originally scoped for OLX, Vinted and Allegro; narrowed to Vinted only — see
-`docs/adr-002-scope-narrowed-to-vinted.md`.
+Originally scoped for OLX, Vinted and Allegro, then narrowed to Vinted
+(`docs/adr-002-scope-narrowed-to-vinted.md`); eBay was added on its official
+Browse API (`docs/adr-007-ebay-adapter.md`).
 
 ## Layout
 
@@ -25,6 +26,12 @@ see `docs/adr-003-vinted-adapter.md`. If scanning fails, the options page's
 report; see `docs/adr-004-vinted-fetch-fallback-and-diagnostics.md`. Vinted's
 September 2026 move to `api.vinted.pl/svc-catalogue` is covered in
 `docs/adr-005-vinted-svc-catalogue-api.md`.
+
+eBay needs your own free API keyset: options page → Ustawienia → "eBay —
+klucz API" has a short how-to (developer.ebay.com → Application Keys →
+Production keyset). Prices are in USD, only listings that ship to Poland are
+shown, auctions are marked "Licytacja", and shipping is shown next to the
+price — see `docs/adr-007-ebay-adapter.md`.
 
 ## Quick start
 

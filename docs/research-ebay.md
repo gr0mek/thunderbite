@@ -1,7 +1,9 @@
 # Research: watching eBay (ebay.com) listings
 
-Status: research only, nothing implemented. Written 2026-10-02 as input for a
-future ADR-007 ("eBay adapter").
+Status: research, written 2026-10-02. Implemented in ADR-007
+(`docs/adr-007-ebay-adapter.md`) with the product owner's answers to §6:
+ebay.com in USD, bring-your-own key, auctions marked separately, shipping
+shown next to the price.
 
 The build environment cannot reach any eBay host (`www.ebay.com`,
 `api.ebay.com`, `developer.ebay.com`: proxy-blocked). Everything below comes

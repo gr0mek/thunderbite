@@ -1,5 +1,5 @@
 import { copy } from "@/shared/copy.pl";
-import { formatPrice } from "@/shared/format";
+import { formatPrice, formatShipping } from "@/shared/format";
 import type { OfferRecord } from "@/shared/schemas";
 import { OfferTitleBlock } from "@/ui/shared/OfferTitleBlock";
 
@@ -19,7 +19,10 @@ export function OfferTableRow({ offer, onOpen, onHide }: OfferTableRowProps) {
       <button type="button" class="offer-row-trigger" onClick={onOpen}>
         <OfferTitleBlock offer={offer} />
       </button>
-      <span class="text-price tr">{formatPrice(offer.price)}</span>
+      <span class="col tr">
+        <span class="text-price">{formatPrice(offer.price, offer.currency)}</span>
+        {formatShipping(offer) && <span class="text-meta">{formatShipping(offer)}</span>}
+      </span>
       <span class="text-meta tr">{stateLabel}</span>
       {offer.state === "hidden" ? (
         <span />

@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 import { copy } from "@/shared/copy.pl";
 import { formatPrice, formatRelativeTime, formatSiteList } from "@/shared/format";
+import { watchCurrency } from "@/shared/sites";
 import type { Watch } from "@/shared/schemas";
 import { checkWatchNow, pauseWatch, resumeWatch } from "@/background/messages";
 import {
@@ -71,7 +72,9 @@ export function WatchDetailScreen({ watchId, onBack, onEdit }: WatchDetailScreen
           <div class="text-body" style={{ color: "var(--ink-muted)", marginTop: 4 }}>
             {copy.watchDetail.filterSentence(
               watch.name,
-              watch.priceMax !== undefined ? formatPrice(watch.priceMax) : null,
+              watch.priceMax !== undefined
+                ? formatPrice(watch.priceMax, watchCurrency(watch))
+                : null,
               formatSiteList(watch.sites),
               copy.form.intervalPreset(watch.checkIntervalMinutes),
             )}

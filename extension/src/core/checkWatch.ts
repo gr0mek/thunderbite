@@ -13,6 +13,7 @@ import {
   type Watch,
 } from "@/shared/schemas";
 import { toScanError, type ScanError } from "@/shared/scanErrors";
+import { SITE_ERROR_PREFIX } from "@/shared/sites";
 import type { Notifier } from "@/background/notifier";
 import type { SiteRateLimiter } from "@/background/rateLimiter";
 import type { Logger } from "@/shared/logger";
@@ -85,7 +86,7 @@ export async function checkWatch(watch: Watch, deps: CheckWatchDeps): Promise<vo
         await deps.siteHealth.recordSuccess(site);
         return { site, offers, requests, error: undefined as ScanError | undefined };
       } catch (err) {
-        const error = toScanError(err);
+        const error = toScanError(err, SITE_ERROR_PREFIX[site]);
         await deps.siteHealth.recordError(site, error);
         deps.logger.error(`Adapter ${site} search failed [${error.code}]`, {
           watchId: watch.id,
@@ -102,7 +103,10 @@ export async function checkWatch(watch: Watch, deps: CheckWatchDeps): Promise<vo
   let matched: NormalizedOffer[];
   const dealInfo = new Map<string, { kind: DealKind; median: number }>();
   if (watch.deal?.enabled) {
-    const relevant = allOffers.filter((o) => matchesKeywords(watch, o));
+    // An auction's price is its current bid ($0.99 an hour in), not what
+    // the item is worth or will sell for: it would read as a −95% "deal"
+    // and drag the median down. Deal mode only looks at fixed prices.
+    const relevant = allOffers.filter((o) => !o.auction && matchesKeywords(watch, o));
     let stats: MarketStats | null = null;
     if (deps.prices) {
       await deps.prices.record(watch.id, relevant);
@@ -137,6 +141,8 @@ export async function checkWatch(watch: Watch, deps: CheckWatchDeps): Promise<vo
       imageUrl: offer.imageUrl,
       location: offer.location,
       postedAt: offer.postedAt,
+      shippingCost: offer.shippingCost,
+      auction: offer.auction,
       state: "new",
       foundAt,
       isBaseline,

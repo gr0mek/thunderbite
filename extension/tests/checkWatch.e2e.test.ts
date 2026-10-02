@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createFakeAdapter } from "@/adapters/fake";
+import { createFakeAdapter, createUnconfiguredAdapter } from "@/adapters/fake";
 import type { NormalizedOffer, SiteAdapter, SiteId } from "@/adapters/types";
 import {
   createWatchAndRunBaseline,
@@ -50,6 +50,7 @@ describe("checkWatch / watchLifecycle end-to-end", () => {
     vintedResults = [vintedOffer("1", "Leica M6 czarna"), vintedOffer("2", "Nikon FM2")];
     const adapters: Record<SiteId, SiteAdapter> = {
       vinted: createFakeAdapter("vinted", () => vintedResults),
+      ebay: createUnconfiguredAdapter("ebay"),
     };
     create = vi.fn().mockResolvedValue(undefined);
     const notifications: NotificationsPort = { create };
@@ -64,7 +65,7 @@ describe("checkWatch / watchLifecycle end-to-end", () => {
         new NotificationTargetStore(new MemoryStore()),
       ),
       logger: new Logger(new LogRepo(root)),
-      siteFloorsMinutes: { vinted: 1 },
+      siteFloorsMinutes: { vinted: 1, ebay: 1 },
     };
   });
 

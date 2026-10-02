@@ -4,7 +4,7 @@ import { z } from "zod";
 // defaults: 20-watch limit, 15 min default interval, 08:00 digest hour,
 // 30-day offer retention, 5 min minimum interval).
 
-export const SiteIdSchema = z.enum(["vinted"]);
+export const SiteIdSchema = z.enum(["vinted", "ebay"]);
 
 export const CHECK_INTERVAL_PRESETS_MINUTES = [5, 15, 60, 360] as const;
 export const MIN_CHECK_INTERVAL_MINUTES = 5;
@@ -165,6 +165,15 @@ export const OfferRecordSchema = z.object({
   marketPrice: z.number().nonnegative().optional(),
   /** Percent below the market median, e.g. 85 for −85%. */
   discountPct: z.number().int().optional(),
+  /** Cheapest shipping to Poland in `currency`, 0 = free (eBay only). */
+  shippingCost: z.number().nonnegative().optional(),
+  /** Auctions (eBay): `price` is the current bid. */
+  auction: z
+    .object({
+      endsAt: z.string().datetime().optional(),
+      bidCount: z.number().int().nonnegative().optional(),
+    })
+    .optional(),
 });
 export type OfferRecord = z.infer<typeof OfferRecordSchema>;
 
@@ -198,6 +207,19 @@ export const SCAN_ERROR_CODES = [
   "VNT-JSON",
   "VNT-SHAPE",
   "VNT-EMPTY",
+  "EBY-KEYS",
+  "EBY-AUTH",
+  "EBY-401",
+  "EBY-403",
+  "EBY-404",
+  "EBY-429",
+  "EBY-5XX",
+  "EBY-HTTP",
+  "EBY-NET",
+  "EBY-TIMEOUT",
+  "EBY-JSON",
+  "EBY-SHAPE",
+  "EBY-EMPTY",
   "APP-UNKNOWN",
 ] as const;
 export const ScanErrorCodeSchema = z.enum(SCAN_ERROR_CODES);
@@ -258,6 +280,14 @@ export const SiteHealthSchema = z.object({
 });
 export type SiteHealth = z.infer<typeof SiteHealthSchema>;
 
+/** The user's own eBay app keyset (Production), used for the Browse API —
+ * see docs/adr-007-ebay-adapter.md. Stored only in this browser. */
+export const EbayCredentialsSchema = z.object({
+  clientId: z.string().trim().min(1),
+  clientSecret: z.string().trim().min(1),
+});
+export type EbayCredentials = z.infer<typeof EbayCredentialsSchema>;
+
 export const SettingsSchema = z.object({
   email: z.string().email().optional(),
   emailVerified: z.boolean().default(false),
@@ -275,6 +305,7 @@ export const SettingsSchema = z.object({
   offerRetentionDays: z.number().int().positive().default(OFFER_RETENTION_DAYS),
   notificationsPermissionAskedAt: z.string().datetime().optional(),
   onboardingCompletedAt: z.string().datetime().optional(),
+  ebay: EbayCredentialsSchema.optional(),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 

@@ -15,6 +15,8 @@ export interface DiagnosticsEnvironment {
   /** Names only — values are never read out. */
   vintedCookieNames: string[];
   hasSessionCookie: boolean;
+  /** Whether an eBay keyset is saved — never the key itself. */
+  ebayKeysConfigured: boolean;
 }
 
 async function vintedCookieNames(): Promise<string[]> {
@@ -23,7 +25,9 @@ async function vintedCookieNames(): Promise<string[]> {
   return [...new Set(cookies.map((c) => c.name))].sort();
 }
 
-export async function collectEnvironment(): Promise<DiagnosticsEnvironment> {
+export async function collectEnvironment(
+  ebayKeysConfigured: boolean,
+): Promise<DiagnosticsEnvironment> {
   const [headerRuleActive, vintedTabs, names] = await Promise.all([
     isVintedHeaderRuleActive().catch(() => false),
     countVintedTabs().catch(() => 0),
@@ -36,5 +40,6 @@ export async function collectEnvironment(): Promise<DiagnosticsEnvironment> {
     vintedTabs,
     vintedCookieNames: names,
     hasSessionCookie: names.includes(VINTED_SESSION_COOKIE),
+    ebayKeysConfigured,
   };
 }

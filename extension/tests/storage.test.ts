@@ -84,7 +84,7 @@ describe("SiteHealthRepo", () => {
   it("lists every tracked site even before any check ran", async () => {
     const repo = new SiteHealthRepo(new RootStore(new MemoryStore()));
     const list = await repo.list();
-    expect(list.map((h) => h.site).sort()).toEqual(["vinted"]);
+    expect(list.map((h) => h.site).sort()).toEqual(["ebay", "vinted"]);
     expect(list.every((h) => h.status === "ok")).toBe(true);
   });
 });

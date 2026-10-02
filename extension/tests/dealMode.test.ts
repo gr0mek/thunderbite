@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createFakeAdapter } from "@/adapters/fake";
+import { createFakeAdapter, createUnconfiguredAdapter } from "@/adapters/fake";
 import type { NormalizedOffer, SearchQuery } from "@/adapters/types";
 import {
   classifyPrice,
@@ -163,6 +163,7 @@ describe("deal mode end-to-end", () => {
             return fake.search(q, s, o);
           },
         },
+        ebay: createUnconfiguredAdapter("ebay"),
       },
       offers: new OfferRepo(db),
       prices: new PriceRepo(db),
@@ -174,7 +175,7 @@ describe("deal mode end-to-end", () => {
         new NotificationTargetStore(new MemoryStore()),
       ),
       logger: new Logger(new LogRepo(root)),
-      siteFloorsMinutes: { vinted: 1 },
+      siteFloorsMinutes: { vinted: 1, ebay: 1 },
     };
   });
 
@@ -243,5 +244,75 @@ describe("deal mode end-to-end", () => {
 
     await deleteWatch(deps, watch.id);
     expect(await deps.prices!.listByWatch(watch.id, 30)).toHaveLength(0);
+  });
+});
+
+describe("deal mode on eBay", () => {
+  function ebayListing(
+    id: string,
+    price: number,
+    extra: Partial<NormalizedOffer> = {},
+  ): NormalizedOffer {
+    return {
+      site: "ebay",
+      externalId: id,
+      url: `https://www.ebay.com/itm/${id}`,
+      title: "Olympus mju II",
+      price,
+      currency: "USD",
+      ...extra,
+    };
+  }
+
+  it("ignores auctions and notifies fixed-price deals in dollars", async () => {
+    const root = new RootStore(new MemoryStore());
+    const db = openOfferDb(`deal-ebay-${crypto.randomUUID()}`);
+    const market = [400, 420, 450, 460, 480, 500, 500, 510, 520, 540, 560, 600].map(
+      (p, i) => ebayListing(`m${i}`, p),
+    );
+    // A fresh auction at $1 would otherwise look like a −99% bargain.
+    let results = [...market, ebayListing("auction", 1, { auction: { bidCount: 0 } })];
+    const create = vi.fn().mockResolvedValue(undefined);
+    const deps: LifecycleDeps = {
+      adapters: {
+        vinted: createUnconfiguredAdapter("vinted"),
+        ebay: createFakeAdapter("ebay", () => results),
+      },
+      offers: new OfferRepo(db),
+      prices: new PriceRepo(db),
+      watches: new WatchRepo(root),
+      siteHealth: new SiteHealthRepo(root),
+      rateLimiter: new SiteRateLimiter(),
+      notifier: new Notifier({ create }, new NotificationTargetStore(new MemoryStore())),
+      logger: new Logger(new LogRepo(root)),
+      siteFloorsMinutes: { vinted: 1, ebay: 1 },
+    };
+
+    const watch = await createWatchAndRunBaseline(deps, {
+      name: "Olympus mju II",
+      sites: ["ebay"],
+      checkIntervalMinutes: 2,
+      deal: { enabled: true, thresholdPct: 50 },
+    });
+    expect(watch.market?.median).toBe(500);
+    expect(await deps.prices!.listByWatch(watch.id, 30)).toHaveLength(market.length);
+
+    results = [
+      ...market,
+      ebayListing("auction2", 20, { auction: { bidCount: 3 } }),
+      ebayListing("deal", 200, { shippingCost: 25 }),
+    ];
+    await checkWatchNow(deps, watch.id);
+
+    const offers = await deps.offers.listByWatch(watch.id);
+    expect(offers.map((o) => o.externalId)).toEqual(["deal"]);
+    expect(offers[0]).toMatchObject({
+      currency: "USD",
+      shippingCost: 25,
+      dealKind: "deal",
+    });
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(create.mock.calls[0]![1].title).toBe("🔥 $200 · Olympus mju II");
+    expect(create.mock.calls[0]![1].message).toContain("mediana $500 · eBay");
   });
 });

@@ -19,7 +19,7 @@ describe("alarm naming", () => {
 });
 
 describe("effectiveIntervalMinutes", () => {
-  const floors = { vinted: 5 };
+  const floors = { vinted: 5, ebay: 5 };
 
   it("uses the user's interval when it's already above the site's floor", () => {
     expect(
@@ -31,7 +31,7 @@ describe("effectiveIntervalMinutes", () => {
     expect(
       effectiveIntervalMinutes(
         { checkIntervalMinutes: 5, sites: ["vinted"] },
-        { vinted: 20 },
+        { vinted: 20, ebay: 20 },
       ),
     ).toBe(20);
   });

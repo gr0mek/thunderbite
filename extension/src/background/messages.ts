@@ -18,7 +18,7 @@ export type BackgroundRequest =
   | { type: "watch/delete"; watchId: string }
   | { type: "quickAdd/detected"; site: SiteId; context: SearchContext }
   | { type: "quickAdd/get"; tabId: number }
-  | { type: "diag/testConnection" }
+  | { type: "diag/testConnection"; site?: SiteId }
   | { type: "diag/environment" };
 
 export type BackgroundResponse<T = unknown> =
@@ -66,7 +66,8 @@ export async function getQuickAddContext(): Promise<{
   });
 }
 
-export const testConnection = () =>
-  sendToBackground<ScanRecord[]>({ type: "diag/testConnection" });
+/** Every configured site, or just `site`. */
+export const testConnection = (site?: SiteId) =>
+  sendToBackground<ScanRecord[]>({ type: "diag/testConnection", ...(site && { site }) });
 export const getDiagnosticsEnvironment = () =>
   sendToBackground<DiagnosticsEnvironment>({ type: "diag/environment" });

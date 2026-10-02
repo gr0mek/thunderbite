@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 import { copy } from "@/shared/copy.pl";
 import { formatPrice } from "@/shared/format";
+import { watchCurrency } from "@/shared/sites";
 import { dealThreshold } from "@/core/market";
 import {
   DEAL_SUSPICIOUS_BELOW_PCT,
@@ -33,19 +34,34 @@ function PriceStrip({
   median,
   threshold,
   dealIds,
+  currency,
 }: {
   points: PricePoint[];
   median: number;
   threshold: number;
   dealIds: Set<string>;
+  currency: string;
 }) {
+  const price = (n: number) => formatPrice(n, currency);
   const [tip, setTip] = useState<Tip | null>(null);
   const W = 800;
   const X0 = 16;
   const X1 = 784;
   const BASE = 86;
   const top = Math.max(median * 1.6, ...points.map((p) => p.price)) || 1;
-  const step = top > 4000 ? 1000 : top > 1500 ? 500 : top > 400 ? 100 : 50;
+  // Cheap eBay items ($20–$150) need finer ticks than zł prices do.
+  const step =
+    top > 4000
+      ? 1000
+      : top > 1500
+        ? 500
+        : top > 400
+          ? 100
+          : top > 150
+            ? 50
+            : top > 40
+              ? 10
+              : 5;
   const max = Math.ceil(top / step) * step;
   const x = (v: number) => X0 + (Math.min(v, max) / max) * (X1 - X0);
   const suspicious = (median * DEAL_SUSPICIOUS_BELOW_PCT) / 100;
@@ -77,11 +93,7 @@ function PriceStrip({
         viewBox={`0 0 ${W} 120`}
         width="100%"
         role="img"
-        aria-label={copy.deal.chartLabel(
-          points.length,
-          formatPrice(median),
-          formatPrice(threshold),
-        )}
+        aria-label={copy.deal.chartLabel(points.length, price(median), price(threshold))}
       >
         <rect
           x={x(0)}
@@ -112,7 +124,7 @@ function PriceStrip({
               fill="var(--ink-muted)"
               text-anchor={t === 0 ? "start" : t === max ? "end" : "middle"}
             >
-              {formatPrice(t)}
+              {price(t)}
             </text>
           </g>
         ))}
@@ -125,7 +137,7 @@ function PriceStrip({
           stroke-dasharray="3 3"
         />
         <text x={x(threshold) + 6} y={12} font-size={11} fill="var(--ink)">
-          {copy.deal.chartThreshold(formatPrice(threshold))}
+          {copy.deal.chartThreshold(price(threshold))}
         </text>
         <line
           x1={x(median)}
@@ -136,7 +148,7 @@ function PriceStrip({
           stroke-width={2}
         />
         <text x={x(median) + 6} y={12} font-size={11} fill="var(--ink)">
-          {copy.deal.chartMedian(formatPrice(median))}
+          {copy.deal.chartMedian(price(median))}
         </text>
         {dots.map(({ p, cx, cy, deal }) => (
           <circle
@@ -152,7 +164,7 @@ function PriceStrip({
               setTip({
                 x: (e as MouseEvent).offsetX,
                 y: (e as MouseEvent).offsetY,
-                text: `${formatPrice(p.price)} · ${p.title}`,
+                text: `${price(p.price)} · ${p.title}`,
               })
             }
             onMouseLeave={() => setTip(null)}
@@ -198,6 +210,8 @@ export function DealPanel({ watch, offers, onOpenOffer }: DealPanelProps) {
   }
 
   const threshold = dealThreshold(market.median, pct);
+  const currency = watchCurrency(watch);
+  const price = (n: number | null) => formatPrice(n, currency);
   const dealIds = new Set(deals.map((o) => o.externalId));
 
   return (
@@ -205,19 +219,19 @@ export function DealPanel({ watch, offers, onOpenOffer }: DealPanelProps) {
       <div class="deal-tiles">
         <div class="deal-tile">
           <div class="text-meta">{d.tileMarket}</div>
-          <div class="deal-tile-value">{formatPrice(market.median)}</div>
+          <div class="deal-tile-value">{price(market.median)}</div>
           <div class="text-meta">{d.tileMarketSub}</div>
         </div>
         <div class="deal-tile">
           <div class="text-meta">{d.tileRange}</div>
           <div class="deal-tile-value">
-            {formatPrice(market.p25)}–{formatPrice(market.p75)}
+            {price(market.p25)}–{price(market.p75)}
           </div>
           <div class="text-meta">{d.tileRangeSub}</div>
         </div>
         <div class="deal-tile deal-tile--hl">
           <div class="text-meta">{d.tileThreshold(pct)}</div>
-          <div class="deal-tile-value">{formatPrice(threshold)}</div>
+          <div class="deal-tile-value">{price(threshold)}</div>
           <div class="text-meta">{d.tileThresholdSub}</div>
         </div>
         <div class="deal-tile">
@@ -253,6 +267,7 @@ export function DealPanel({ watch, offers, onOpenOffer }: DealPanelProps) {
           median={market.median}
           threshold={threshold}
           dealIds={dealIds}
+          currency={currency}
         />
       </div>
 
@@ -284,7 +299,7 @@ export function DealPanel({ watch, offers, onOpenOffer }: DealPanelProps) {
                     </button>
                   </td>
                   <td style={{ textAlign: "right", fontWeight: 700 }}>
-                    {formatPrice(o.price)}
+                    {price(o.price)}
                   </td>
                   <td style={{ textAlign: "right" }}>
                     {o.discountPct !== undefined && d.discount(o.discountPct)}

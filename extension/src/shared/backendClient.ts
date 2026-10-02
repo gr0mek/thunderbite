@@ -8,6 +8,7 @@ import { copy } from "./copy.pl";
 export interface EmailOfferPayload {
   title: string;
   price: number | null;
+  currency?: string;
   site: string;
   location?: string;
   url: string;

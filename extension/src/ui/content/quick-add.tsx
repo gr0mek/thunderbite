@@ -6,6 +6,7 @@ import type { SiteId } from "@/adapters/types";
 
 function siteFromHostname(hostname: string): SiteId | null {
   if (hostname.endsWith("vinted.pl") || hostname.endsWith("vinted.com")) return "vinted";
+  if (hostname === "www.ebay.com" || hostname === "ebay.com") return "ebay";
   return null;
 }
 

@@ -7,9 +7,11 @@ export type OptionsRoute = "watches" | "offers" | "settings" | "diagnostics";
 interface SidebarProps {
   active: OptionsRoute;
   onNavigate: (route: OptionsRoute) => void;
+  /** eBay needs the user's own API key before it's searched at all. */
+  ebayConfigured: boolean;
 }
 
-export function Sidebar({ active, onNavigate }: SidebarProps) {
+export function Sidebar({ active, onNavigate, ebayConfigured }: SidebarProps) {
   const health = useSiteHealth();
   return (
     <div class="options-sidebar">
@@ -52,27 +54,39 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
         <div class="text-meta" style={{ fontWeight: 600 }}>
           {copy.settings.servicesSection}
         </div>
-        {health.map((h) => (
-          <span key={h.site} class="fx ac gap2 text-meta">
-            <span
-              class={`status-dot status-dot--${h.status === "ok" ? "ok" : "degraded"}`}
-            />
-            {copy.siteNames[h.site]} —{" "}
-            {h.status === "ok"
-              ? copy.settings.serviceWorking
-              : copy.settings.serviceProblem}
-            {h.status !== "ok" && h.lastErrorCode && (
-              <button
-                type="button"
-                class="code-badge"
-                title={copy.scanErrors[h.lastErrorCode].title}
-                onClick={() => onNavigate("diagnostics")}
-              >
-                {h.lastErrorCode}
-              </button>
-            )}
-          </span>
-        ))}
+        {health.map((h) =>
+          h.site === "ebay" && !ebayConfigured ? (
+            <button
+              key={h.site}
+              type="button"
+              class="fx ac gap2 text-meta link-button"
+              onClick={() => onNavigate("settings")}
+            >
+              <span class="status-dot status-dot--off" />
+              {copy.siteNames[h.site]} — {copy.settings.ebayNotConfigured}
+            </button>
+          ) : (
+            <span key={h.site} class="fx ac gap2 text-meta">
+              <span
+                class={`status-dot status-dot--${h.status === "ok" ? "ok" : "degraded"}`}
+              />
+              {copy.siteNames[h.site]} —{" "}
+              {h.status === "ok"
+                ? copy.settings.serviceWorking
+                : copy.settings.serviceProblem}
+              {h.status !== "ok" && h.lastErrorCode && (
+                <button
+                  type="button"
+                  class="code-badge"
+                  title={copy.scanErrors[h.lastErrorCode].title}
+                  onClick={() => onNavigate("diagnostics")}
+                >
+                  {h.lastErrorCode}
+                </button>
+              )}
+            </span>
+          ),
+        )}
       </div>
     </div>
   );

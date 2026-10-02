@@ -16,6 +16,7 @@ import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 const EmailOfferSchema = z.object({
   title: z.string(),
   price: z.number().nullable(),
+  currency: z.string().optional(),
   site: z.string(),
   location: z.string().optional(),
   url: z.string().url(),

@@ -11,7 +11,8 @@ export class WatchLimitReachedError extends Error {
   }
 }
 
-const ALL_SITES = ["vinted"] as const;
+/** A watch searches one site; Vinted unless the caller picked another. */
+const DEFAULT_SITES = ["vinted"] as const;
 
 export class WatchRepo {
   constructor(private readonly root: RootStore) {}
@@ -37,7 +38,7 @@ export class WatchRepo {
       ...parsedInput,
       id: crypto.randomUUID(),
       keywords: parsedInput.keywords?.length ? parsedInput.keywords : [parsedInput.name],
-      sites: parsedInput.sites?.length ? parsedInput.sites : [...ALL_SITES],
+      sites: parsedInput.sites?.length ? parsedInput.sites : [...DEFAULT_SITES],
       checkIntervalMinutes:
         parsedInput.checkIntervalMinutes ?? state.settings.defaultCheckIntervalMinutes,
       notifyEmail: parsedInput.notifyEmail ?? state.settings.defaultEmailMode,

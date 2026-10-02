@@ -2,12 +2,16 @@ import { defineManifest } from "@crxjs/vite-plugin";
 import pkg from "./package.json";
 
 const SITE_HOSTS = ["*://*.vinted.pl/*", "*://*.vinted.com/*"];
+// eBay is searched through its API (docs/adr-007-ebay-adapter.md); the
+// website is only read by the quick-add content script, on search pages.
+const EBAY_API_HOST = "https://api.ebay.com/*";
+const EBAY_SEARCH_PAGES = ["*://www.ebay.com/sch/*"];
 
 export default defineManifest({
   manifest_version: 3,
   name: "Thunder Bait",
   description:
-    "Automatycznie sprawdza Vinted i powiadamia o nowych, pasujących ofertach.",
+    "Automatycznie sprawdza Vinted i eBay i powiadamia o nowych, pasujących ofertach.",
   version: pkg.version,
   // No default_locale: nothing here uses chrome.i18n — every string is
   // hardcoded Polish via shared/copy.pl.ts (uxSmartBuy.md §10 DoD). Setting
@@ -43,10 +47,10 @@ export default defineManifest({
   ],
   // Scoped strictly to the tracked marketplace + backend, per
   // startSmartBuy.md §6 rule 9 (host_permissions MUST NOT be broader).
-  host_permissions: [...SITE_HOSTS, "https://*.supabase.co/*"],
+  host_permissions: [...SITE_HOSTS, EBAY_API_HOST, "https://*.supabase.co/*"],
   content_scripts: [
     {
-      matches: SITE_HOSTS,
+      matches: [...SITE_HOSTS, ...EBAY_SEARCH_PAGES],
       js: ["src/ui/content/quick-add.tsx"],
       run_at: "document_idle",
     },

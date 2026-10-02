@@ -1,5 +1,5 @@
 import { copy } from "@/shared/copy.pl";
-import { formatPrice } from "@/shared/format";
+import { formatPrice, formatShipping } from "@/shared/format";
 import type { OfferRecord } from "@/shared/schemas";
 import { OfferTitleBlock } from "@/ui/shared/OfferTitleBlock";
 
@@ -38,10 +38,15 @@ export function OfferRow({ offer, watchName, onOpen, onHide }: OfferRowProps) {
           class="text-price"
           style={{ color: offer.state === "seen" ? "var(--ink-muted)" : "var(--ink)" }}
         >
-          {formatPrice(offer.price)}
+          {formatPrice(offer.price, offer.currency)}
         </span>
         {offer.marketPrice !== undefined && (
-          <span class="deal-was">≈ {formatPrice(offer.marketPrice)}</span>
+          <span class="deal-was">≈ {formatPrice(offer.marketPrice, offer.currency)}</span>
+        )}
+        {formatShipping(offer) && (
+          <span class="text-meta" style={{ whiteSpace: "nowrap" }}>
+            {formatShipping(offer)}
+          </span>
         )}
         {offer.state === "hidden" ? null : offer.state === "seen" ? (
           <span class="text-meta">{copy.offerRow.seenLabel}</span>
