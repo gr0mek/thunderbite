@@ -4,6 +4,7 @@ import type { OfferFilter } from "@/storage/offerRepo";
 import type {
   LogEntry,
   OfferRecord,
+  PricePoint,
   ScanRecord,
   SiteHealth,
   Watch,
@@ -119,4 +120,20 @@ export function useLogEntries(pollMs = 5000): LogEntry[] {
   useEffect(reload, [reload]);
   usePolling(pollMs, reload);
   return logs;
+}
+
+/** Deal mode's price history for one watch (last `days` days). */
+export function usePriceHistory(
+  watchId: string | undefined,
+  days: number,
+  pollMs = 10000,
+): PricePoint[] {
+  const [points, setPoints] = useState<PricePoint[]>([]);
+  const reload = useCallback(() => {
+    if (!watchId) return;
+    void storage.prices.listByWatch(watchId, days).then(setPoints);
+  }, [watchId, days]);
+  useEffect(reload, [reload]);
+  usePolling(pollMs, reload);
+  return points;
 }

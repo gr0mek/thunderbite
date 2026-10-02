@@ -22,6 +22,8 @@ export const VINTED_WEB_URL = "https://www.vinted.pl";
 export const VINTED_API_URL = "https://api.vinted.pl";
 export const CATALOG_ITEMS_PATH = "/svc-catalogue/items";
 export const PER_PAGE = 20;
+/** Largest page svc-catalogue serves; used to seed deal mode's price history. */
+export const MAX_PER_PAGE = 96;
 
 /**
  * Vinted's item-condition ("status") ids. "Nowy" covers both new-with-tags
@@ -38,8 +40,8 @@ export const STATUS_IDS = {
  * values are left out: svc-catalogue answers 400 to a blank filter. */
 export function buildCatalogParams(
   keyword: string,
-  query: Pick<SearchQuery, "priceMin" | "priceMax" | "condition">,
-  perPage: number = PER_PAGE,
+  query: Pick<SearchQuery, "priceMin" | "priceMax" | "condition" | "limit">,
+  perPage: number = Math.min(query.limit ?? PER_PAGE, MAX_PER_PAGE),
 ): URLSearchParams {
   const params = new URLSearchParams();
   if (keyword.trim()) params.set("search_text", keyword.trim());

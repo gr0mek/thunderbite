@@ -20,7 +20,14 @@ import type { OfferRepo } from "@/storage/offerRepo";
 import type { SiteHealthRepo } from "@/storage/siteHealthRepo";
 import type { WatchRepo } from "@/storage/watchRepo";
 import type { ScanLogRepo } from "@/storage/scanLogRepo";
-import { filterOffers } from "./matcher";
+import { filterOffers, matchesKeywords } from "./matcher";
+import { classifyPrice, computeMarketStats, discountPct, type DealKind } from "./market";
+import type { PriceRepo } from "@/storage/priceRepo";
+import {
+  DEAL_SEED_LISTINGS,
+  MARKET_WINDOW_DAYS,
+  type MarketStats,
+} from "@/shared/schemas";
 
 export interface CheckWatchDeps {
   adapters: Record<SiteId, SiteAdapter>;
@@ -32,14 +39,21 @@ export interface CheckWatchDeps {
   logger: Logger;
   /** Diagnostics log; optional so tests can skip it. */
   scans?: ScanLogRepo | undefined;
+  /** Deal mode's price history; without it deal mode never finds deals. */
+  prices?: PriceRepo | undefined;
 }
 
+/** Deal mode searches without a price cap — it needs the whole market to
+ * learn the price — and seeds its history with a full page on the first
+ * (baseline) check. */
 export function watchToSearchQuery(watch: Watch): SearchQuery {
+  const dealMode = !!watch.deal?.enabled;
   return {
     keywords: watch.keywords,
     excludeKeywords: watch.excludeKeywords,
-    priceMin: watch.priceMin,
-    priceMax: watch.priceMax,
+    priceMin: dealMode ? undefined : watch.priceMin,
+    priceMax: dealMode ? undefined : watch.priceMax,
+    limit: dealMode && !watch.baselineCompletedAt ? DEAL_SEED_LISTINGS : undefined,
     location: watch.location,
     condition: watch.condition,
     extra: watch.size ? { size: watch.size } : undefined,
@@ -84,7 +98,30 @@ export async function checkWatch(watch: Watch, deps: CheckWatchDeps): Promise<vo
   );
 
   const allOffers = perSite.flatMap((r) => r.offers);
-  const matched = filterOffers(watch, allOffers);
+
+  let matched: NormalizedOffer[];
+  const dealInfo = new Map<string, { kind: DealKind; median: number }>();
+  if (watch.deal?.enabled) {
+    const relevant = allOffers.filter((o) => matchesKeywords(watch, o));
+    let stats: MarketStats | null = null;
+    if (deps.prices) {
+      await deps.prices.record(watch.id, relevant);
+      const history = await deps.prices.listByWatch(watch.id, MARKET_WINDOW_DAYS);
+      stats = computeMarketStats(history.map((p) => p.price));
+      if (stats) await deps.watches.update(watch.id, { market: stats });
+    }
+    matched = [];
+    if (stats) {
+      for (const offer of relevant) {
+        const kind = classifyPrice(offer.price, stats.median, watch.deal.thresholdPct);
+        if (!kind) continue;
+        matched.push(offer);
+        dealInfo.set(offerKey(offer), { kind, median: stats.median });
+      }
+    }
+  } else {
+    matched = filterOffers(watch, allOffers);
+  }
 
   const foundAt = new Date().toISOString();
   const records: OfferRecord[] = matched.map((offer) =>
@@ -103,6 +140,7 @@ export async function checkWatch(watch: Watch, deps: CheckWatchDeps): Promise<vo
       state: "new",
       foundAt,
       isBaseline,
+      ...dealFields(offer, dealInfo.get(offerKey(offer))),
     }),
   );
 
@@ -110,6 +148,12 @@ export async function checkWatch(watch: Watch, deps: CheckWatchDeps): Promise<vo
 
   if (isBaseline) {
     await deps.watches.markBaselineComplete(watch.id);
+  } else if (watch.deal?.enabled) {
+    // Deal mode notifies only about deals — never suspiciously cheap ones.
+    await deps.notifier.notifyDeals(
+      watch,
+      inserted.filter((o) => o.dealKind === "deal"),
+    );
   } else if (inserted.length > 0) {
     await deps.notifier.notifyNewOffers(watch, inserted);
     // Immediate/daily email delivery is handled by the backend (task #9);
@@ -143,4 +187,16 @@ export async function checkWatch(watch: Watch, deps: CheckWatchDeps): Promise<vo
       await deps.scans.append(record);
     }
   }
+}
+
+function dealFields(
+  offer: NormalizedOffer,
+  info: { kind: DealKind; median: number } | undefined,
+): Partial<OfferRecord> {
+  if (!info) return {};
+  return {
+    dealKind: info.kind,
+    marketPrice: info.median,
+    ...(offer.price !== null && { discountPct: discountPct(offer.price, info.median) }),
+  };
 }

@@ -5,6 +5,8 @@ import type { OfferRepo } from "@/storage/offerRepo";
 import type { SettingsRepo } from "@/storage/settingsRepo";
 import type { SiteHealthRepo } from "@/storage/siteHealthRepo";
 import type { ScanLogRepo } from "@/storage/scanLogRepo";
+import type { PriceRepo } from "@/storage/priceRepo";
+import { MARKET_WINDOW_DAYS } from "@/shared/schemas";
 
 export const HOUSEKEEPING_ALARM_NAME = "housekeeping";
 export const HOUSEKEEPING_PERIOD_MINUTES = 30;
@@ -16,6 +18,7 @@ export interface HousekeepingDeps {
   settings: SettingsRepo;
   logger: Logger;
   scans?: ScanLogRepo | undefined;
+  prices?: PriceRepo | undefined;
 }
 
 /** Runs on a fixed recurring alarm, independent of any watch's own
@@ -28,6 +31,9 @@ export async function runHousekeeping(deps: HousekeepingDeps): Promise<void> {
     scans: deps.scans,
     logOnlyFailures: true,
   });
+
+  // Prices older than the market window no longer feed any median.
+  await deps.prices?.deleteOlderThan(MARKET_WINDOW_DAYS);
 
   const { offerRetentionDays } = await deps.settings.get();
   const deleted = await deps.offers.deleteOlderThan(offerRetentionDays);

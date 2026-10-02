@@ -6,8 +6,16 @@ import { SegmentedControl } from "@/ui/shared/SegmentedControl";
 import { Checkbox } from "@/ui/shared/Checkbox";
 import { Disclosure } from "@/ui/shared/Disclosure";
 import { copy } from "@/shared/copy.pl";
+import { Toggle } from "@/ui/shared/Toggle";
+import { formatPrice } from "@/shared/format";
+import { dealThreshold } from "@/core/market";
 import {
   CHECK_INTERVAL_PRESETS_MINUTES,
+  DEAL_DEFAULT_EXCLUDES,
+  DEAL_DEFAULT_THRESHOLD_PCT,
+  DEAL_INTERVAL_PRESETS_MINUTES,
+  DEAL_THRESHOLD_PRESETS_PCT,
+  MIN_CHECK_INTERVAL_MINUTES,
   type Condition,
   type EmailMode,
   type Settings,
@@ -64,7 +72,28 @@ export function NewWatchForm({
   );
   const [condition, setCondition] = useState<Condition>(watch?.condition ?? "any");
   const [size, setSize] = useState(watch?.size ?? "");
+  const [dealEnabled, setDealEnabled] = useState(watch?.deal?.enabled ?? false);
+  const [thresholdPct, setThresholdPct] = useState(
+    watch?.deal?.thresholdPct ?? DEAL_DEFAULT_THRESHOLD_PCT,
+  );
   const [submitting, setSubmitting] = useState(false);
+
+  function toggleDeal(next: boolean) {
+    setDealEnabled(next);
+    if (next) {
+      // Fast checks are what make deal mode useful; pre-fill the usual junk.
+      if (interval > DEAL_INTERVAL_PRESETS_MINUTES[0])
+        setInterval_(DEAL_INTERVAL_PRESETS_MINUTES[0]);
+      if (excludeKeywords.length === 0) setExcludeKeywords([...DEAL_DEFAULT_EXCLUDES]);
+    } else if (interval < MIN_CHECK_INTERVAL_MINUTES) {
+      setInterval_(settings.defaultCheckIntervalMinutes);
+    }
+  }
+
+  const intervalPresets: readonly number[] = dealEnabled
+    ? DEAL_INTERVAL_PRESETS_MINUTES
+    : CHECK_INTERVAL_PRESETS_MINUTES;
+  const market = watch?.deal?.enabled ? watch.market : undefined;
   const [error, setError] = useState<string | null>(null);
 
   const canSubmit = name.trim().length > 0 && !submitting;
@@ -93,8 +122,9 @@ export function NewWatchForm({
       name: name.trim(),
       keywords,
       excludeKeywords,
-      priceMin: parsedPriceMin,
-      priceMax: parsedPriceMax,
+      priceMin: dealEnabled ? undefined : parsedPriceMin,
+      priceMax: dealEnabled ? undefined : parsedPriceMax,
+      deal: { enabled: dealEnabled, thresholdPct },
       location: locationCity
         ? {
             city: locationCity,
@@ -158,31 +188,91 @@ export function NewWatchForm({
           />
         </Field>
 
-        <Field label={copy.form.priceMaxLabel}>
-          <div class="fx ac jb text-field">
-            <input
-              aria-label={copy.form.priceMaxLabel}
-              value={priceMax}
-              onInput={(e) => setPriceMax((e.target as HTMLInputElement).value)}
-              inputMode="numeric"
-              style={{
-                border: "none",
-                background: "none",
-                width: "100%",
-                color: "inherit",
-                font: "inherit",
-              }}
+        <div class={`deal-card ${dealEnabled ? "deal-card--on" : ""}`}>
+          <div class="fx ac jb gap2">
+            <div>
+              <div class="field-label" style={{ margin: 0 }}>
+                {copy.deal.modeTitle}
+              </div>
+              <div class="text-meta">{copy.deal.modeDescription}</div>
+            </div>
+            <Toggle
+              checked={dealEnabled}
+              onChange={toggleDeal}
+              label={copy.deal.modeTitle}
             />
-            <span class="text-meta">{copy.form.currency}</span>
           </div>
-        </Field>
+          {dealEnabled && (
+            <>
+              <Field label={copy.deal.marketValueLabel}>
+                <div class="text-meta">
+                  {market
+                    ? copy.deal.marketAuto(
+                        formatPrice(market.median),
+                        market.sampleSize,
+                        formatPrice(market.p25),
+                        formatPrice(market.p75),
+                      )
+                    : copy.deal.marketLearning}
+                </div>
+              </Field>
+              <Field label={copy.deal.thresholdLabel}>
+                <SegmentedControl
+                  label={copy.deal.thresholdLabel}
+                  value={thresholdPct}
+                  onChange={setThresholdPct}
+                  options={DEAL_THRESHOLD_PRESETS_PCT.map((pct) => ({
+                    value: pct,
+                    label: copy.deal.thresholdPreset(pct),
+                  }))}
+                />
+                <div class="deal-result">
+                  {market
+                    ? copy.deal.thresholdResult(
+                        formatPrice(dealThreshold(market.median, thresholdPct)),
+                      )
+                    : copy.deal.thresholdResultPct(thresholdPct)}
+                </div>
+              </Field>
+              <Field label={copy.deal.excludesLabel}>
+                <ChipInput
+                  value={excludeKeywords}
+                  onChange={setExcludeKeywords}
+                  addLabel={copy.form.addVariant}
+                  max={20}
+                />
+              </Field>
+            </>
+          )}
+        </div>
+
+        {!dealEnabled && (
+          <Field label={copy.form.priceMaxLabel}>
+            <div class="fx ac jb text-field">
+              <input
+                aria-label={copy.form.priceMaxLabel}
+                value={priceMax}
+                onInput={(e) => setPriceMax((e.target as HTMLInputElement).value)}
+                inputMode="numeric"
+                style={{
+                  border: "none",
+                  background: "none",
+                  width: "100%",
+                  color: "inherit",
+                  font: "inherit",
+                }}
+              />
+              <span class="text-meta">{copy.form.currency}</span>
+            </div>
+          </Field>
+        )}
 
         <Field label={copy.form.intervalLabel}>
           <SegmentedControl
             label={copy.form.intervalLabel}
             value={interval}
             onChange={setInterval_}
-            options={CHECK_INTERVAL_PRESETS_MINUTES.map((m) => ({
+            options={intervalPresets.map((m) => ({
               value: m,
               label: copy.form.intervalPreset(m),
             }))}
@@ -233,23 +323,27 @@ export function NewWatchForm({
           summary={copy.form.moreFiltersSummary}
           defaultOpen={hasAdvancedValue}
         >
-          <Field label={copy.form.priceMinLabel}>
-            <input
-              class="text-field"
-              aria-label={copy.form.priceMinLabel}
-              value={priceMin}
-              onInput={(e) => setPriceMin((e.target as HTMLInputElement).value)}
-              inputMode="numeric"
-            />
-          </Field>
-          <Field label={copy.form.excludeKeywordsLabel}>
-            <ChipInput
-              value={excludeKeywords}
-              onChange={setExcludeKeywords}
-              addLabel={copy.form.addVariant}
-              max={20}
-            />
-          </Field>
+          {!dealEnabled && (
+            <Field label={copy.form.priceMinLabel}>
+              <input
+                class="text-field"
+                aria-label={copy.form.priceMinLabel}
+                value={priceMin}
+                onInput={(e) => setPriceMin((e.target as HTMLInputElement).value)}
+                inputMode="numeric"
+              />
+            </Field>
+          )}
+          {!dealEnabled && (
+            <Field label={copy.form.excludeKeywordsLabel}>
+              <ChipInput
+                value={excludeKeywords}
+                onChange={setExcludeKeywords}
+                addLabel={copy.form.addVariant}
+                max={20}
+              />
+            </Field>
+          )}
           <div class="fx gap3">
             <div style={{ flex: 1 }}>
               <Field label={copy.form.locationLabel}>

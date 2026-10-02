@@ -18,11 +18,30 @@ const DIACRITICS: Record<string, string> = {
   ż: "z",
 };
 
+/** Roman numerals in model names ("mju II", "Mark III") match their
+ * arabic spelling ("mju 2"). "i" is left alone — it's Polish for "and". */
+const ROMAN: Record<string, string> = { ii: "2", iii: "3", iv: "4" };
+
+/**
+ * Lowercase, strip Polish diacritics, treat punctuation as spaces, collapse
+ * whitespace, and spell model numbers one way, so "Olympus Mju-II",
+ * "mju:ii", "μ-II" and "mju 2" all normalize to "... mju 2".
+ */
 export function normalizeForMatch(text: string): string {
   return text
-    .trim()
     .toLowerCase()
-    .replace(/[ąćęłńóśźż]/g, (ch) => DIACRITICS[ch] ?? ch);
+    .replace(/[ąćęłńóśźż]/g, (ch) => DIACRITICS[ch] ?? ch)
+    .replace(/[μµ]/g, " mju ")
+    .replace(/[-_:;/\\.,()[\]"'+|]+/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((token) => ROMAN[token] ?? token)
+    .join(" ");
+}
+
+function containsPhrase(normalizedTitle: string, phrase: string): boolean {
+  const needle = normalizeForMatch(phrase);
+  return needle.length > 0 && ` ${normalizedTitle} `.includes(needle);
 }
 
 type MatchableWatch = Pick<
@@ -38,15 +57,7 @@ type MatchableWatch = Pick<
  * there's nothing to compare, so failing them would just hide real offers.
  */
 export function matchesOffer(watch: MatchableWatch, offer: NormalizedOffer): boolean {
-  const title = normalizeForMatch(offer.title);
-
-  const hasKeyword = watch.keywords.some((k) => title.includes(normalizeForMatch(k)));
-  if (!hasKeyword) return false;
-
-  const hasExcluded = watch.excludeKeywords.some((k) =>
-    title.includes(normalizeForMatch(k)),
-  );
-  if (hasExcluded) return false;
+  if (!matchesKeywords(watch, offer)) return false;
 
   if (offer.price !== null) {
     if (watch.priceMin !== undefined && offer.price < watch.priceMin) return false;
@@ -54,6 +65,17 @@ export function matchesOffer(watch: MatchableWatch, offer: NormalizedOffer): boo
   }
 
   return true;
+}
+
+/** Keywords and exclusions only, ignoring price — what deal mode uses to
+ * decide which listings describe the item (and so feed its market price). */
+export function matchesKeywords(
+  watch: Pick<Watch, "keywords" | "excludeKeywords">,
+  offer: Pick<NormalizedOffer, "title">,
+): boolean {
+  const title = normalizeForMatch(offer.title);
+  if (!watch.keywords.some((k) => containsPhrase(title, k))) return false;
+  return !watch.excludeKeywords.some((k) => containsPhrase(title, k));
 }
 
 export function filterOffers(

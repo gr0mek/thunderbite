@@ -11,6 +11,7 @@ import {
 } from "@/ui/shared/dataHooks";
 import { Banner } from "@/ui/shared/Banner";
 import { OfferTableRow } from "../components/OfferTableRow";
+import { DealPanel } from "../components/DealPanel";
 
 const LOW_RESULTS_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -123,7 +124,15 @@ export function WatchDetailScreen({ watchId, onBack, onEdit }: WatchDetailScreen
         </div>
       )}
 
-      {!problemSite && showLowResultsHint && (
+      {watch.deal?.enabled && (
+        <DealPanel
+          watch={watch}
+          offers={allOffers}
+          onOpenOffer={(o) => void openOffer(o.key, o.url)}
+        />
+      )}
+
+      {!problemSite && !watch.deal?.enabled && showLowResultsHint && (
         <Banner action={{ label: copy.watchDetail.edit, onClick: () => onEdit(watch) }}>
           {copy.banners.lowResultsHint}
         </Banner>

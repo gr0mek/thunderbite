@@ -33,7 +33,7 @@ export function NewOffersScreen({
   const { offersByWatch, reload } = useAllOffers(watches, "new");
   const watchById = useMemo(() => new Map(watches.map((w) => [w.id, w])), [watches]);
 
-  const { fresh, baseline } = useMemo(() => {
+  const { deals, suspicious, fresh, baseline } = useMemo(() => {
     const rows: Row[] = [];
     for (const [watchId, offers] of offersByWatch) {
       const watch = watchById.get(watchId);
@@ -41,8 +41,13 @@ export function NewOffersScreen({
       for (const offer of offers) rows.push({ offer, watchName: watch.name });
     }
     rows.sort((a, b) => b.offer.foundAt.localeCompare(a.offer.foundAt));
+    // Deal-mode offers get their own sections at the top: deals first (the
+    // reason the user is here), then the suspiciously cheap ones to check.
+    const isDealRow = (r: Row) => !r.offer.isBaseline && !!r.offer.dealKind;
     return {
-      fresh: rows.filter((r) => !r.offer.isBaseline),
+      deals: rows.filter((r) => isDealRow(r) && r.offer.dealKind === "deal"),
+      suspicious: rows.filter((r) => isDealRow(r) && r.offer.dealKind === "suspicious"),
+      fresh: rows.filter((r) => !r.offer.isBaseline && !r.offer.dealKind),
       baseline: rows.filter((r) => r.offer.isBaseline),
     };
   }, [offersByWatch, watchById]);
@@ -94,7 +99,12 @@ export function NewOffersScreen({
     );
   }
 
-  if (fresh.length === 0 && baseline.length === 0) {
+  if (
+    deals.length === 0 &&
+    suspicious.length === 0 &&
+    fresh.length === 0 &&
+    baseline.length === 0
+  ) {
     const mostRecentCheck = watches
       .map((w) => w.lastCheckedAt)
       .filter((t): t is string => !!t)
@@ -129,6 +139,28 @@ export function NewOffersScreen({
             onAdd={onQuickAdd}
           />
         )}
+        {deals.length > 0 && <div class="popup-day-header">{copy.deal.sectionDeals}</div>}
+        {deals.map((row) => (
+          <OfferRow
+            key={row.offer.key}
+            offer={row.offer}
+            watchName={row.watchName}
+            onOpen={() => void openOffer(row)}
+            onHide={() => void hideOffer(row)}
+          />
+        ))}
+        {suspicious.length > 0 && (
+          <div class="popup-day-header">{copy.deal.sectionSuspicious}</div>
+        )}
+        {suspicious.map((row) => (
+          <OfferRow
+            key={row.offer.key}
+            offer={row.offer}
+            watchName={row.watchName}
+            onOpen={() => void openOffer(row)}
+            onHide={() => void hideOffer(row)}
+          />
+        ))}
         {fresh.map((row) => {
           const day = formatDayLabel(row.offer.foundAt);
           const showHeader = day !== lastDay;

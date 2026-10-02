@@ -67,6 +67,7 @@ const lifecycleDeps: LifecycleDeps = {
   notifier,
   logger,
   scans: storage.scans,
+  prices: storage.prices,
   siteFloorsMinutes,
 };
 
@@ -107,6 +108,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
       settings: storage.settings,
       logger,
       scans: storage.scans,
+      prices: storage.prices,
     });
     return;
   }

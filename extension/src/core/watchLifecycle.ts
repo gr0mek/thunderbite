@@ -66,7 +66,22 @@ export async function updateWatchAndReschedule(
   watchId: string,
   patch: Partial<Omit<Watch, "id" | "createdAt">>,
 ): Promise<Watch> {
-  const watch = await deps.watches.update(watchId, patch);
+  const before = await deps.watches.get(watchId);
+  let watch = await deps.watches.update(watchId, patch);
+  if (before && needsMarketRelearn(before, watch)) {
+    // Deal mode just switched on, or what counts as "the item" changed: the
+    // old price history no longer describes it. Forget it and re-run the
+    // silent baseline, which re-seeds the history with a full page.
+    await deps.prices?.deleteByWatch(watchId);
+    watch = await deps.watches.update(watchId, {
+      market: undefined,
+      baselineCompletedAt: undefined,
+    });
+    if (!watch.paused) {
+      await checkWatch(watch, deps);
+      watch = (await deps.watches.get(watchId)) ?? watch;
+    }
+  }
   if (watch.paused) {
     await clearWatchAlarm(watchId);
   } else {
@@ -75,8 +90,20 @@ export async function updateWatchAndReschedule(
   return watch;
 }
 
+function needsMarketRelearn(before: Watch, after: Watch): boolean {
+  if (!after.deal?.enabled) return false;
+  if (!before.deal?.enabled) return true;
+  const same = (a: string[], b: string[]) =>
+    a.length === b.length && a.every((v, i) => v === b[i]);
+  return (
+    !same(before.keywords, after.keywords) ||
+    !same(before.excludeKeywords, after.excludeKeywords)
+  );
+}
+
 export async function deleteWatch(deps: LifecycleDeps, watchId: string): Promise<void> {
   await clearWatchAlarm(watchId);
   await deps.offers.deleteByWatch(watchId);
+  await deps.prices?.deleteByWatch(watchId);
   await deps.watches.remove(watchId);
 }
