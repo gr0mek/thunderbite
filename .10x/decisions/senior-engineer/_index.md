@@ -1,3 +1,3 @@
-# senior-engineer — index
+# Senior Engineer — index
 
-Active features: `mvp-cloud-version` (brainstorming). Nothing decided yet.
+Active features: `mvp-cloud-version` (implementation approach per stage written).

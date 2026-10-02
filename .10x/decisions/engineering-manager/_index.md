@@ -1,3 +1,3 @@
-# engineering-manager — index
+# Engineering Manager — index
 
-Active features: `mvp-cloud-version` (brainstorming). Nothing decided yet.
+Active features: `mvp-cloud-version` (planned, stages 0–5).

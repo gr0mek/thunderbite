@@ -1,7 +1,7 @@
 # Handoff
 
-From: Architect + Staff Engineer → To: Engineering Manager + Senior Engineer (Planning)
+From: Engineering Manager + Senior Engineer → To: SDE (Implementation)
 
-- Approved design: `.10x/specs/2026-10-02-mvp-cloud-version-design.md`; decision record: `docs/adr-007-cloud-server.md`.
-- Planning must break stages 0–5 into ≤ half-day tasks. Stage 0 (probe) is independent and should ship first so the user can run it on the VPS while stage 1 proceeds.
-- Watch-out for stage 1: `core/checkWatch.ts` imports types from `background/` (Notifier, SiteRateLimiter) — move these interfaces into core.
+- Ordered tasks: `.10x/decisions/engineering-manager/mvp-cloud-version.md`; approach and tricky parts: `.10x/decisions/senior-engineer/mvp-cloud-version.md`.
+- Start with stage 0 (`server/scripts/vinted-probe.ts`). The user runs it on the VPS for 24 h; its result decides VPS vs plan B.
+- Stage 1 can proceed in parallel with the probe run.

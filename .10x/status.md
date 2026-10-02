@@ -1,7 +1,7 @@
 # Status
 
 - Feature: `mvp-cloud-version` — Thunder Bait in the cloud (no browser) + Telegram/Discord notifications.
-- Phase: **Design Complete** (spec + ADR-007 approved 2026-10-02). Next: Planning.
+- Phase: **Planning Complete** (task breakdown in decisions/engineering-manager/mvp-cloud-version.md). Next: Implementation, stage 0.
 - PR: https://github.com/gr0mek/thunderbite/pull/6 (branch `mvp-cloud-version`).
 - Key risk: Vinted/DataDome blocking the VPS IP → stage 0 probe first.
 
