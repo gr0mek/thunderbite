@@ -14,5 +14,11 @@ export default defineConfig({
     target: "es2022",
     outDir: "dist",
     emptyOutDir: true,
+    // Extension pages load chunks straight from the packed extension, so
+    // <link rel="modulepreload"> buys nothing — and Chrome refuses to reuse
+    // those preloads for chrome-extension:// resources ("cross-world
+    // extension resource mismatch"), fetching every chunk twice and logging
+    // a warning per chunk. Static imports still load the chunks normally.
+    modulePreload: false,
   },
 });
