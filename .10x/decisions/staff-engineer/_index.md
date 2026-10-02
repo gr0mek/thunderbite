@@ -4,3 +4,5 @@
 - Stable scan error codes (`VNT-*`, `APP-*`): never change meaning, only add.
 - Tests: vitest + jsdom + fake-indexeddb; 86 tests. CI: `.github/workflows/extension-ci.yml` (format, lint, build, test).
 - ADRs live in `docs/adr-NNN-*.md` (001–006).
+
+- `mvp-cloud-version`: npm workspaces monorepo; structured stdout logging; env config validated with zod.

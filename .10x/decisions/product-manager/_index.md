@@ -1,3 +1,5 @@
-# product-manager — index
+# Product Manager — index
 
-Active features: `mvp-cloud-version` (brainstorming). Nothing decided yet.
+Active features: `mvp-cloud-version` (approved).
+
+- Polish-only UI copy, private/small-group use.

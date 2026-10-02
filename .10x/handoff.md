@@ -1,7 +1,7 @@
 # Handoff
 
-From: Discovery → To: Brainstorming (all roles)
+From: Architect + Staff Engineer → To: Engineering Manager + Senior Engineer (Planning)
 
-- Codebase discovered; see decisions/*/_index.md ([DISCOVERED] tags).
-- User request (2026-10-02): analyse a web/cloud version so monitoring runs without an open browser; MVP + action plan; notifications to Telegram or Discord.
-- Reusable: `extension/src/core/*`, `adapters/vinted/api.ts` + parsing, `shared/schemas.ts`. Must replace: transport (chrome.cookies/scripting), storage repos, alarms, notifier.
+- Approved design: `.10x/specs/2026-10-02-mvp-cloud-version-design.md`; decision record: `docs/adr-007-cloud-server.md`.
+- Planning must break stages 0–5 into ≤ half-day tasks. Stage 0 (probe) is independent and should ship first so the user can run it on the VPS while stage 1 proceeds.
+- Watch-out for stage 1: `core/checkWatch.ts` imports types from `background/` (Notifier, SiteRateLimiter) — move these interfaces into core.
