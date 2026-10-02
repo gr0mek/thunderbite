@@ -82,6 +82,7 @@ function EnvironmentPanel({ env }: { env: DiagnosticsEnvironment | null }) {
     [d.envCookies, env.vintedCookieNames.join(", ") || d.none],
     [d.envTabs, String(env.vintedTabs)],
     [d.envHeaderRule, env.headerRuleActive ? d.active : d.inactive],
+    [d.envEbayKeys, env.ebayKeysConfigured ? d.yes : d.no],
   ];
   return (
     <div class="options-panel">

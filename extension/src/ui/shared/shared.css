@@ -120,6 +120,9 @@
 .status-dot--ok {
   background: var(--action);
 }
+.status-dot--off {
+  background: var(--line);
+}
 .status-dot--degraded,
 .status-dot--broken {
   background: var(--warn);
@@ -520,6 +523,11 @@
   background: none;
   border: 1px solid var(--warn);
   color: var(--warn);
+}
+.auction-pill {
+  background: none;
+  border: 1px solid var(--action);
+  color: var(--action);
 }
 .deal-pill--mode {
   background: none;

@@ -1,8 +1,7 @@
 import { SiteHealthSchema, type ScanErrorCode, type SiteHealth } from "@/shared/schemas";
 import type { SiteId } from "@/adapters/types";
+import { ALL_SITES } from "@/shared/sites";
 import type { RootStore } from "./rootStore";
-
-const ALL_SITES: SiteId[] = ["vinted"];
 
 export class SiteHealthRepo {
   constructor(private readonly root: RootStore) {}

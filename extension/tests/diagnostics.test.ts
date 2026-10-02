@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { createUnconfiguredAdapter } from "@/adapters/fake";
 import type { NormalizedOffer, SiteAdapter } from "@/adapters/types";
 import { checkWatch } from "@/core/checkWatch";
 import { runHealthChecks } from "@/core/healthcheck";
@@ -87,7 +88,7 @@ describe("checkWatch scan log", () => {
     const s = setup();
     const watch = await s.watches.create({ name: "Kurtka", keywords: ["nike"] });
     await checkWatch(watch, {
-      adapters: { vinted: adapter(search) },
+      adapters: { vinted: adapter(search), ebay: createUnconfiguredAdapter("ebay") },
       offers: new OfferRepo(openOfferDb(`diag-${crypto.randomUUID()}`)),
       watches: s.watches,
       siteHealth: s.siteHealth,
@@ -151,6 +152,7 @@ describe("runHealthChecks scan log", () => {
             return "broken";
           },
         ),
+        ebay: createUnconfiguredAdapter("ebay"),
       },
       siteHealth: s.siteHealth,
       logger: s.logger,
@@ -163,7 +165,10 @@ describe("runHealthChecks scan log", () => {
   it("skips logging successful periodic checks when asked", async () => {
     const s = setup();
     await runHealthChecks({
-      adapters: { vinted: adapter(async () => []) },
+      adapters: {
+        vinted: adapter(async () => []),
+        ebay: createUnconfiguredAdapter("ebay"),
+      },
       siteHealth: s.siteHealth,
       logger: s.logger,
       scans: s.scans,

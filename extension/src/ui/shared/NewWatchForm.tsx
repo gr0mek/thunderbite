@@ -8,6 +8,8 @@ import { Disclosure } from "@/ui/shared/Disclosure";
 import { copy } from "@/shared/copy.pl";
 import { Toggle } from "@/ui/shared/Toggle";
 import { formatPrice } from "@/shared/format";
+import { ALL_SITES, SITE_CURRENCY } from "@/shared/sites";
+import type { SiteId } from "@/adapters/types";
 import { dealThreshold } from "@/core/market";
 import {
   CHECK_INTERVAL_PRESETS_MINUTES,
@@ -26,7 +28,9 @@ import { createWatch, updateWatch } from "@/background/messages";
 interface NewWatchFormProps {
   watch?: Watch | undefined;
   /** Pre-fill for create-mode only, from the F3 quick-add banner. */
-  initialQuery?: { name: string; priceMax?: number | undefined } | undefined;
+  initialQuery?:
+    | { name: string; priceMax?: number | undefined; site?: SiteId | undefined }
+    | undefined;
   settings: Settings;
   onDone: (watch: Watch) => void;
   onCancel: () => void;
@@ -40,6 +44,13 @@ export function NewWatchForm({
   onCancel,
 }: NewWatchFormProps) {
   const isEdit = !!watch;
+  // One site per watch: its price filters and market value are in that
+  // site's currency (zł on Vinted, $ on eBay), so it can't change later.
+  const [site, setSite] = useState<SiteId>(
+    watch?.sites[0] ?? initialQuery?.site ?? "vinted",
+  );
+  const currency = SITE_CURRENCY[site];
+  const price = (n: number) => formatPrice(n, currency);
   const [name, setName] = useState(watch?.name ?? initialQuery?.name ?? "");
   const [variants, setVariants] = useState<string[]>(
     (watch?.keywords ?? []).filter((k) => k !== watch?.name),
@@ -119,6 +130,7 @@ export function NewWatchForm({
 
     const keywords = [name.trim(), ...variants.filter((v) => v !== name.trim())];
     const payload = {
+      ...(!isEdit && { sites: [site] }),
       name: name.trim(),
       keywords,
       excludeKeywords,
@@ -132,7 +144,7 @@ export function NewWatchForm({
           }
         : undefined,
       condition,
-      size: size || undefined,
+      size: site === "vinted" && size ? size : undefined,
       checkIntervalMinutes: interval,
       notifyBrowser,
       notifyEmail,
@@ -169,6 +181,43 @@ export function NewWatchForm({
       </div>
 
       <div class="col gap3 form-panel-body">
+        <Field label={copy.form.siteLabel}>
+          {isEdit ? (
+            <div class="text-body" title={copy.form.siteLocked}>
+              {copy.siteNames[site]}
+            </div>
+          ) : (
+            <SegmentedControl
+              label={copy.form.siteLabel}
+              value={site}
+              onChange={setSite}
+              options={ALL_SITES.map((s) => ({ value: s, label: copy.siteNames[s] }))}
+            />
+          )}
+          {site === "ebay" && (
+            <div class="text-meta" style={{ marginTop: 6 }}>
+              {settings.ebay ? (
+                copy.form.ebayHint
+              ) : (
+                <>
+                  {copy.form.ebayNoKeys}{" "}
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      void chrome.tabs.create({
+                        url: chrome.runtime.getURL("src/ui/options/index.html#/settings"),
+                      });
+                    }}
+                  >
+                    {copy.form.ebayAddKeys}
+                  </a>
+                </>
+              )}
+            </div>
+          )}
+        </Field>
+
         <Field label={copy.form.nameLabel}>
           <input
             class="text-field text-field--active"
@@ -208,10 +257,10 @@ export function NewWatchForm({
                 <div class="text-meta">
                   {market
                     ? copy.deal.marketAuto(
-                        formatPrice(market.median),
+                        price(market.median),
                         market.sampleSize,
-                        formatPrice(market.p25),
-                        formatPrice(market.p75),
+                        price(market.p25),
+                        price(market.p75),
                       )
                     : copy.deal.marketLearning}
                 </div>
@@ -229,11 +278,14 @@ export function NewWatchForm({
                 <div class="deal-result">
                   {market
                     ? copy.deal.thresholdResult(
-                        formatPrice(dealThreshold(market.median, thresholdPct)),
+                        price(dealThreshold(market.median, thresholdPct)),
                       )
                     : copy.deal.thresholdResultPct(thresholdPct)}
                 </div>
               </Field>
+              {site === "ebay" && (
+                <div class="text-meta">{copy.deal.auctionsIgnored}</div>
+              )}
               <Field label={copy.deal.excludesLabel}>
                 <ChipInput
                   value={excludeKeywords}
@@ -262,7 +314,7 @@ export function NewWatchForm({
                   font: "inherit",
                 }}
               />
-              <span class="text-meta">{copy.form.currency}</span>
+              <span class="text-meta">{copy.price.symbol(currency)}</span>
             </div>
           </Field>
         )}
@@ -382,14 +434,16 @@ export function NewWatchForm({
               <option value="used">{copy.form.conditionUsed}</option>
             </select>
           </Field>
-          <Field label={copy.form.sizeLabel}>
-            <input
-              class="text-field"
-              aria-label={copy.form.sizeLabel}
-              value={size}
-              onInput={(e) => setSize((e.target as HTMLInputElement).value)}
-            />
-          </Field>
+          {site === "vinted" && (
+            <Field label={copy.form.sizeLabel}>
+              <input
+                class="text-field"
+                aria-label={copy.form.sizeLabel}
+                value={size}
+                onInput={(e) => setSize((e.target as HTMLInputElement).value)}
+              />
+            </Field>
+          )}
         </Disclosure>
 
         {error && (

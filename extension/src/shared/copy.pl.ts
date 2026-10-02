@@ -14,6 +14,16 @@ function offersCount(n: number): string {
   return `${n} ${few ? "oferty" : "ofert"}`;
 }
 
+/** "1 dzień", "3 dni". */
+function daysCount(n: number): string {
+  return `${n} ${n === 1 ? "dzień" : "dni"}`;
+}
+
+/** Thousands grouped with `sep`. */
+function group(n: number, sep: string): string {
+  return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+}
+
 export const copy = {
   brand: {
     name: "Thunder Bait",
@@ -27,6 +37,19 @@ export const copy = {
   offerRow: {
     hide: "Ukryj",
     seenLabel: "Widziana",
+    auction: "Licytacja",
+    auctionBids: (n: number) => offersCount(n),
+    auctionEndsIn: (left: string) => `koniec ${left}`,
+    auctionEnded: "zakończona",
+    currentBid: "aktualna oferta",
+    shipping: (price: string) => `+ ${price} wysyłka`,
+    freeShipping: "darmowa wysyłka",
+  },
+
+  timeLeft: {
+    minutes: (n: number) => `za ${n} min`,
+    hours: (n: number) => `za ${n} h`,
+    days: (n: number) => `za ${daysCount(n)}`,
   },
 
   offerState: {
@@ -73,7 +96,11 @@ export const copy = {
     addVariant: "+ dodaj",
     priceMaxLabel: "Cena maks.",
     priceMinLabel: "Cena min.",
-    currency: "zł",
+    siteLabel: "Gdzie szukać",
+    siteLocked: "Serwisu nie można zmienić po utworzeniu obserwacji.",
+    ebayNoKeys: "eBay wymaga Twojego klucza API.",
+    ebayAddKeys: "Dodaj klucz w ustawieniach",
+    ebayHint: "Ceny w USD, tylko oferty z wysyłką do Polski.",
     intervalLabel: "Sprawdzaj co",
     intervalPreset: (minutes: number) =>
       minutes < 60 ? `${minutes} min` : `${minutes / 60} h`,
@@ -106,7 +133,7 @@ export const copy = {
 
   onboarding: {
     pitch:
-      "Thunder Bait sprawdza Vinted za Ciebie i daje znać, gdy pojawi się pasująca oferta.",
+      "Thunder Bait sprawdza Vinted i eBay za Ciebie i daje znać, gdy pojawi się pasująca oferta.",
     emailLabel: "E-mail (opcjonalnie)",
     emailPlaceholder: "ty@example.com",
     save: "Zapisz",
@@ -193,6 +220,27 @@ export const copy = {
       "Obserwacje, oferty i ustawienia zostaną trwale usunięte z tej przeglądarki. Tej operacji nie można cofnąć.",
     deleteAllDataConfirmCta: "Usuń wszystko",
     cancel: "Anuluj",
+    ebaySection: "eBay — klucz API",
+    ebayIntro:
+      "eBay udostępnia oferty przez oficjalne API. Każdy używa własnego, darmowego klucza (limit 5 000 zapytań dziennie — jedno sprawdzenie obserwacji to zwykle jedno zapytanie).",
+    ebaySteps: [
+      "Załóż darmowe konto na developer.ebay.com (możesz zalogować się kontem eBay).",
+      "Otwórz „Application Keys” i utwórz keyset Production (nie Sandbox). Przy pierwszym razie eBay zapyta o nazwę aplikacji — wpisz dowolną.",
+      "Jeśli eBay poprosi o „Marketplace Account Deletion”, wybierz zwolnienie (exemption) — rozszerzenie nie przechowuje danych użytkowników eBay.",
+      "Skopiuj App ID (Client ID) i Cert ID (Client Secret) do pól poniżej i kliknij „Zapisz i sprawdź”.",
+    ],
+    ebayDocsLink: "Otwórz developer.ebay.com → Application Keys",
+    ebayDocsUrl: "https://developer.ebay.com/my/keys",
+    ebayClientId: "App ID (Client ID)",
+    ebayClientSecret: "Cert ID (Client Secret)",
+    ebaySecretNote:
+      "Klucz zostaje tylko w tej przeglądarce i jest wysyłany wyłącznie do api.ebay.com.",
+    ebaySave: "Zapisz i sprawdź",
+    ebayTesting: "Sprawdzam…",
+    ebayRemove: "Usuń klucz",
+    ebayOk: "Klucz działa.",
+    ebayNotConfigured: "nie skonfigurowano",
+    ebayFailed: (code: string, title: string) => `Nie działa: ${title} (${code})`,
   },
 
   // Stable diagnostic codes (shared/schemas.ts SCAN_ERROR_CODES): what
@@ -243,6 +291,58 @@ export const copy = {
       title: "Vinted zwrócił pustą listę ofert",
       hint: "Jeśli się powtarza, skopiuj raport i zgłoś problem.",
     },
+    "EBY-KEYS": {
+      title: "Brak klucza API eBay",
+      hint: "Dodaj swój klucz w Ustawienia → eBay.",
+    },
+    "EBY-AUTH": {
+      title: "eBay odrzucił klucz API",
+      hint: "Sprawdź App ID i Cert ID w Ustawienia → eBay. Klucz musi być z keysetu Production, nie Sandbox.",
+    },
+    "EBY-401": {
+      title: "eBay nie przyjął tokenu (HTTP 401)",
+      hint: "Zwykle przejściowe — kolejne sprawdzenie pobierze nowy token. Jeśli się powtarza, zapisz klucz ponownie.",
+    },
+    "EBY-403": {
+      title: "Klucz nie ma dostępu do wyszukiwania eBay (HTTP 403)",
+      hint: "Upewnij się, że to keyset Production i że konto deweloperskie jest aktywne.",
+    },
+    "EBY-404": {
+      title: "eBay nie znalazł adresu API (HTTP 404)",
+      hint: "eBay mógł zmienić API. Skopiuj raport i zgłoś problem.",
+    },
+    "EBY-429": {
+      title: "Wyczerpany dzienny limit zapytań eBay (HTTP 429)",
+      hint: "Limit to 5 000 zapytań na dobę. Wydłuż odstęp sprawdzania lub wstrzymaj część obserwacji eBay.",
+    },
+    "EBY-5XX": {
+      title: "Błąd serwera eBay (HTTP 5xx)",
+      hint: "Zwykle przejściowe — kolejne sprawdzenie spróbuje ponownie.",
+    },
+    "EBY-HTTP": {
+      title: "Nieoczekiwany status HTTP z eBay",
+      hint: "Skopiuj raport i zgłoś problem.",
+    },
+    "EBY-NET": {
+      title: "Błąd sieci (eBay)",
+      hint: "Sprawdź połączenie, VPN i blokery reklam (mogą blokować api.ebay.com).",
+    },
+    "EBY-TIMEOUT": {
+      title: "eBay nie odpowiedział w 20 s",
+      hint: "Zwykle przejściowe. Jeśli się powtarza, sprawdź połączenie.",
+    },
+    "EBY-JSON": {
+      title: "Odpowiedź eBay nie jest danymi",
+      hint: "Skopiuj raport i zgłoś problem.",
+    },
+    "EBY-SHAPE": {
+      title: "Nieznany format odpowiedzi eBay",
+      hint: "eBay zmienił API. Skopiuj raport i zgłoś problem.",
+    },
+    "EBY-EMPTY": {
+      title: "eBay zwrócił pustą listę ofert",
+      hint: "Jeśli się powtarza, skopiuj raport i zgłoś problem.",
+    },
     "APP-UNKNOWN": {
       title: "Nieznany błąd aplikacji",
       hint: "Skopiuj raport i zgłoś problem.",
@@ -256,7 +356,9 @@ export const copy = {
     marketValueLabel: "Wartość rynkowa",
     marketAuto: (median: string, n: number, low: string, high: string) =>
       `≈ ${median} · mediana z ${n} ofert (30 dni) · typowo ${low}–${high}`,
-    marketLearning: "Policzę automatycznie z ofert na Vinted przy pierwszym sprawdzeniu.",
+    marketLearning:
+      "Policzę automatycznie z aktualnych ofert przy pierwszym sprawdzeniu.",
+    auctionsIgnored: "Licytacje nie liczą się do wartości rynkowej i nie są okazjami.",
     marketLearningShort: (n: number, min: number) => `uczę się cen (${n}/${min} ofert)`,
     thresholdLabel: "Okazja to cena poniżej",
     thresholdPreset: (pct: number) => `${pct}%`,
@@ -302,7 +404,7 @@ export const copy = {
   diagnostics: {
     title: "Diagnostyka",
     intro:
-      "Szczegóły ostatnich skanów Vinted. Gdy coś nie działa, kod błędu i raport pomagają ustalić przyczynę.",
+      "Szczegóły ostatnich skanów Vinted i eBay. Gdy coś nie działa, kod błędu i raport pomagają ustalić przyczynę.",
     statusSection: "Stan połączenia",
     statusOk: "działa",
     statusProblem: "problem z pobieraniem",
@@ -320,6 +422,7 @@ export const copy = {
     envCookies: "Ciasteczka vinted.pl (nazwy)",
     envTabs: "Otwarte karty vinted.pl",
     envHeaderRule: "Reguła nagłówków (Origin vinted.pl)",
+    envEbayKeys: "Klucz API eBay",
     yes: "tak",
     no: "nie",
     none: "brak",
@@ -354,8 +457,8 @@ export const copy = {
     details: "Szczegóły",
   },
 
-  siteNames: { vinted: "Vinted" },
-  siteInitial: { vinted: "V" },
+  siteNames: { vinted: "Vinted", ebay: "eBay" },
+  siteInitial: { vinted: "V", ebay: "e" },
 
   emptyStates: {
     noWatches: "Nie obserwujesz jeszcze niczego.",
@@ -363,7 +466,7 @@ export const copy = {
     noNewOffers: (rel: string) => `Nic nowego. Ostatnie sprawdzenie: ${rel}.`,
     seeEarlierOffers: "Zobacz wcześniejsze oferty",
     firstCheckInProgress: "Pierwsze sprawdzenie w toku",
-    checkingSites: "Sprawdzam Vinted…",
+    checkingSites: "Sprawdzam…",
   },
 
   banners: {
@@ -418,10 +521,16 @@ export const copy = {
     // §7: "4 200 zł" — a plain space as the thousands separator. Built by
     // hand rather than via toLocaleString("pl-PL"), whose grouping
     // character depends on the runtime's ICU data (not deterministic
-    // across environments/browsers).
-    format: (n: number) =>
-      `${Math.round(n)
-        .toString()
-        .replace(/\B(?=(\d{3})+(?!\d))/g, " ")} zł`,
+    // across environments/browsers). eBay's USD keeps its own convention,
+    // "$1,250" / "$12.99": cents matter at those prices.
+    format: (n: number, currency = "PLN") => {
+      if (currency === "PLN") return `${group(Math.round(n), " ")} zł`;
+      const cents = Math.round(n * 100);
+      const whole = group(Math.floor(cents / 100), ",");
+      const frac = cents % 100 ? `.${String(cents % 100).padStart(2, "0")}` : "";
+      return currency === "USD" ? `$${whole}${frac}` : `${whole}${frac} ${currency}`;
+    },
+    symbol: (currency: string) =>
+      currency === "PLN" ? "zł" : currency === "USD" ? "$" : currency,
   },
 } as const;

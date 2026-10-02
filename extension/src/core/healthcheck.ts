@@ -4,8 +4,7 @@ import type { RequestTrace, ScanErrorCode, ScanRecord } from "@/shared/schemas";
 import { toScanError } from "@/shared/scanErrors";
 import type { ScanLogRepo } from "@/storage/scanLogRepo";
 import type { SiteHealthRepo } from "@/storage/siteHealthRepo";
-
-const SITES: SiteId[] = ["vinted"];
+import { ALL_SITES, SITE_ERROR_PREFIX } from "@/shared/sites";
 
 export interface HealthCheckDeps {
   adapters: Record<SiteId, SiteAdapter>;
@@ -15,6 +14,8 @@ export interface HealthCheckDeps {
   /** Periodic checks only log failures, so they don't push real watch
    * scans out of the (size-capped) scan log. */
   logOnlyFailures?: boolean;
+  /** Only these sites (default: all). */
+  sites?: SiteId[] | undefined;
 }
 
 /**
@@ -29,13 +30,19 @@ export interface HealthCheckDeps {
  */
 export async function runHealthChecks(deps: HealthCheckDeps): Promise<ScanRecord[]> {
   const records: ScanRecord[] = [];
-  for (const site of SITES) {
+  for (const site of deps.sites ?? ALL_SITES) {
+    const adapter = deps.adapters[site];
+    // A site waiting for the user's setup (eBay keys) isn't broken; testing
+    // it would only raise a false "problem" banner.
+    if (adapter.isConfigured && !(await adapter.isConfigured().catch(() => false))) {
+      continue;
+    }
     const startedAt = new Date().toISOString();
     const started = Date.now();
     const requests: RequestTrace[] = [];
     let error: { code: ScanErrorCode; message: string } | undefined;
     try {
-      const result = await deps.adapters[site].healthCheck((r) => requests.push(r));
+      const result = await adapter.healthCheck((r) => requests.push(r));
       if (result === "ok") {
         await deps.siteHealth.recordSuccess(site);
       } else {
@@ -43,7 +50,10 @@ export async function runHealthChecks(deps: HealthCheckDeps): Promise<ScanRecord
         const failed = [...requests].reverse().find((r) => r.code);
         error =
           result === "degraded"
-            ? { code: "VNT-EMPTY", message: "Health check returned no usable items" }
+            ? {
+                code: `${SITE_ERROR_PREFIX[site]}-EMPTY`,
+                message: "Health check returned no usable items",
+              }
             : {
                 code: failed?.code ?? "APP-UNKNOWN",
                 message: failed
@@ -54,7 +64,7 @@ export async function runHealthChecks(deps: HealthCheckDeps): Promise<ScanRecord
         deps.logger.warn(`Health check reported ${result} for ${site} [${error.code}]`);
       }
     } catch (err) {
-      const e = toScanError(err);
+      const e = toScanError(err, SITE_ERROR_PREFIX[site]);
       error = { code: e.code, message: e.message };
       await deps.siteHealth.recordError(site, error);
       deps.logger.error(`Health check threw for ${site} [${e.code}]`, {

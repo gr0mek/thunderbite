@@ -20,7 +20,11 @@ type Screen =
   | {
       kind: "form";
       watch?: Watch;
-      initialQuery?: { name: string; priceMax?: number | undefined };
+      initialQuery?: {
+        name: string;
+        priceMax?: number | undefined;
+        site?: SiteId | undefined;
+      };
     };
 
 export function PopupApp() {
@@ -110,6 +114,7 @@ export function PopupApp() {
                 initialQuery: {
                   name: quickAdd.context.query,
                   priceMax: quickAdd.context.priceMax,
+                  site: quickAdd.site,
                 },
               })
             }

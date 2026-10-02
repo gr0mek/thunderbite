@@ -13,14 +13,23 @@ export function escapeHtml(value: string): string {
   );
 }
 
-export function formatPrice(price: number | null): string {
+const group = (n: number, sep: string) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+
+/** Same formats as the extension's copy.price.format: "4 200 zł", "$12.99". */
+export function formatPrice(price: number | null, currency = "PLN"): string {
   if (price === null) return "—";
-  return `${Math.round(price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")} zł`;
+  if (currency === "PLN") return `${group(Math.round(price), " ")} zł`;
+  const cents = Math.round(price * 100);
+  const whole = group(Math.floor(cents / 100), ",");
+  const frac = cents % 100 ? `.${String(cents % 100).padStart(2, "0")}` : "";
+  return currency === "USD" ? `$${whole}${frac}` : `${whole}${frac} ${currency}`;
 }
 
 export interface EmailOffer {
   title: string;
   price: number | null;
+  /** ISO code; PLN when absent (older extension versions). */
+  currency?: string;
   site: string; // display name, e.g. "Vinted" — already resolved by the caller
   location?: string;
   url: string;
@@ -43,7 +52,7 @@ function footer(links: EmailLinks): { html: string; text: string } {
 }
 
 function offerCardHtml(offer: EmailOffer): string {
-  const price = escapeHtml(formatPrice(offer.price));
+  const price = escapeHtml(formatPrice(offer.price, offer.currency));
   const title = escapeHtml(offer.title);
   const meta = escapeHtml([offer.site, offer.location].filter(Boolean).join(" · "));
   const img = offer.imageUrl
@@ -70,7 +79,7 @@ export interface RenderedEmail {
 
 /** §5.6 "Natychmiast": one offer, sent as soon as it's found. */
 export function renderImmediateEmail(offer: EmailOffer, links: EmailLinks): RenderedEmail {
-  const subject = `${formatPrice(offer.price)} · ${offer.title}`;
+  const subject = `${formatPrice(offer.price, offer.currency)} · ${offer.title}`;
   const f = footer(links);
   return {
     subject,
@@ -96,7 +105,7 @@ export function renderDailyDigestEmail(
       ${rest > 0 ? `<div style="color:#646A75;font-size:13px">i ${rest} więcej</div>` : ""}`;
     const text = [
       watchName,
-      ...shown.map((o) => `  ${formatPrice(o.price)} · ${o.title} — ${o.url}`),
+      ...shown.map((o) => `  ${formatPrice(o.price, o.currency)} · ${o.title} — ${o.url}`),
       rest > 0 ? `  i ${rest} więcej` : null,
     ]
       .filter(Boolean)

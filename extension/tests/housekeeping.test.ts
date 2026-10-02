@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { createUnconfiguredAdapter } from "@/adapters/fake";
 import { runHousekeeping } from "@/background/housekeeping";
 import type { AdapterHealth, SiteAdapter, SiteId } from "@/adapters/types";
 import { offerKey } from "@/adapters/types";
@@ -63,6 +64,7 @@ describe("runHousekeeping", () => {
     const logger = new Logger(new LogRepo(root));
     const adapters: Record<SiteId, SiteAdapter> = {
       vinted: okAdapter(),
+      ebay: createUnconfiguredAdapter("ebay"),
     };
 
     await runHousekeeping({ adapters, siteHealth, offers, settings, logger });

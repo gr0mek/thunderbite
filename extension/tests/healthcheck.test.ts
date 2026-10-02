@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runHealthChecks } from "@/core/healthcheck";
+import { createUnconfiguredAdapter } from "@/adapters/fake";
 import type { AdapterHealth, SiteAdapter, SiteId } from "@/adapters/types";
 import { Logger } from "@/shared/logger";
 import { LogRepo } from "@/storage/logRepo";
@@ -26,7 +27,10 @@ describe("runHealthChecks", () => {
     const logger = new Logger(new LogRepo(root));
 
     await runHealthChecks({
-      adapters: { vinted: adapterReturning("ok") },
+      adapters: {
+        vinted: adapterReturning("ok"),
+        ebay: createUnconfiguredAdapter("ebay"),
+      },
       siteHealth,
       logger,
     });
@@ -42,7 +46,10 @@ describe("runHealthChecks", () => {
     const logger = new Logger(new LogRepo(root));
 
     await runHealthChecks({
-      adapters: { vinted: adapterReturning(new Error("timeout")) },
+      adapters: {
+        vinted: adapterReturning(new Error("timeout")),
+        ebay: createUnconfiguredAdapter("ebay"),
+      },
       siteHealth,
       logger,
     });
@@ -56,12 +63,32 @@ describe("runHealthChecks", () => {
     const root = new RootStore(new MemoryStore());
     const siteHealth = new SiteHealthRepo(root);
     const logger = new Logger(new LogRepo(root));
-    const adapters: Record<SiteId, SiteAdapter> = { vinted: adapterReturning("broken") };
+    const adapters: Record<SiteId, SiteAdapter> = {
+      vinted: adapterReturning("broken"),
+      ebay: createUnconfiguredAdapter("ebay"),
+    };
 
     await runHealthChecks({ adapters, siteHealth, logger });
     await runHealthChecks({ adapters, siteHealth, logger });
     await runHealthChecks({ adapters, siteHealth, logger });
 
     expect((await siteHealth.get("vinted")).status).toBe("broken");
+  });
+});
+
+describe("runHealthChecks with an unconfigured site", () => {
+  it("skips it instead of reporting a problem", async () => {
+    const root = new RootStore(new MemoryStore());
+    const siteHealth = new SiteHealthRepo(root);
+    const records = await runHealthChecks({
+      adapters: {
+        vinted: adapterReturning("ok"),
+        ebay: createUnconfiguredAdapter("ebay"),
+      },
+      siteHealth,
+      logger: new Logger(new LogRepo(root)),
+    });
+    expect(records.map((r) => r.site)).toEqual(["vinted"]);
+    expect((await siteHealth.get("ebay")).consecutiveErrors).toBe(0);
   });
 });

@@ -85,7 +85,11 @@ export function OptionsApp() {
 
   return (
     <div class="options-shell">
-      <Sidebar active={sidebarRoute} onNavigate={(r) => navigate({ kind: r })} />
+      <Sidebar
+        active={sidebarRoute}
+        onNavigate={(r) => navigate({ kind: r })}
+        ebayConfigured={!!settings.ebay}
+      />
       <div class="options-content">
         {route.kind === "watches" && (
           <WatchesScreen

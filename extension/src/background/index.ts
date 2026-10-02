@@ -5,6 +5,7 @@
 // `deps`, which is cheap to rebuild on every wake-up.
 
 import { createVintedAdapter } from "@/adapters/vinted";
+import { createEbayAdapter } from "@/adapters/ebay";
 import type { SiteAdapter, SiteId } from "@/adapters/types";
 import { checkWatch } from "@/core/checkWatch";
 import {
@@ -39,13 +40,18 @@ import { runHealthChecks } from "@/core/healthcheck";
 import { collectEnvironment } from "./diagnostics";
 import { installVintedHeaderRule } from "./vintedHeaders";
 
-// See docs/adr-003-vinted-adapter.md. Everything downstream only depends
-// on the SiteAdapter interface.
+const storage = createStorage();
+
+// See docs/adr-003-vinted-adapter.md and docs/adr-007-ebay-adapter.md.
+// Everything downstream only depends on the SiteAdapter interface.
 const adapters: Record<SiteId, SiteAdapter> = {
   vinted: createVintedAdapter(),
+  // Read on every search, so a key saved in Settings applies right away.
+  ebay: createEbayAdapter({
+    readCredentials: async () => (await storage.settings.get()).ebay,
+  }),
 };
 
-const storage = createStorage();
 const rateLimiter = new SiteRateLimiter();
 const notificationTargets = new NotificationTargetStore(new ChromeLocalStore());
 const notifier = new Notifier(new ChromeNotifications(), notificationTargets);
@@ -168,9 +174,10 @@ async function handleMessage(
         siteHealth: storage.siteHealth,
         logger,
         scans: storage.scans,
+        sites: request.site ? [request.site] : undefined,
       });
     case "diag/environment":
-      return collectEnvironment();
+      return collectEnvironment(!!(await storage.settings.get()).ebay);
   }
 }
 

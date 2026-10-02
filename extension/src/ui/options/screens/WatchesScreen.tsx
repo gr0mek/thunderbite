@@ -1,5 +1,6 @@
 import { copy } from "@/shared/copy.pl";
 import { formatPrice, formatRelativeTime } from "@/shared/format";
+import { watchCurrency } from "@/shared/sites";
 import type { Watch } from "@/shared/schemas";
 import { useAllOffers, useSiteHealth } from "@/ui/shared/dataHooks";
 import { EmptyState } from "@/ui/shared/EmptyState";
@@ -69,7 +70,9 @@ export function WatchesScreen({ watches, onOpenWatch, onAddWatch }: WatchesScree
                     {w.sites.map((s) => copy.siteInitial[s]).join(" ")}
                   </td>
                   <td class="text-meta">
-                    {w.priceMax !== undefined ? formatPrice(w.priceMax) : "—"}
+                    {w.priceMax !== undefined
+                      ? formatPrice(w.priceMax, watchCurrency(w))
+                      : "—"}
                   </td>
                   <td class="text-meta">
                     {copy.form.intervalPreset(w.checkIntervalMinutes)}

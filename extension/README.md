@@ -1,8 +1,9 @@
 # Thunder Bait
 
-Chrome MV3 extension that watches Vinted for matching offers and notifies you
-(browser + email) when one shows up. Originally scoped for OLX, Vinted and
-Allegro; narrowed to Vinted only per a later product decision — the
+Chrome MV3 extension that watches Vinted and eBay for matching offers and
+notifies you (browser + email) when one shows up (eBay: docs/adr-007).
+Originally scoped for OLX, Vinted and Allegro; narrowed to Vinted only per a
+later product decision — the
 `SiteId`/adapter architecture is still generic, so a second site can be
 added back without a redesign.
 

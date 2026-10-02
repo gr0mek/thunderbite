@@ -37,6 +37,11 @@ export { LogRepo } from "./logRepo";
 export { ScanLogRepo } from "./scanLogRepo";
 export { OfferRepo, type OfferFilter } from "./offerRepo";
 export { PriceRepo } from "./priceRepo";
-export { MemoryStore, ChromeLocalStore, type KeyValueStore } from "./local";
+export {
+  MemoryStore,
+  ChromeLocalStore,
+  ChromeSessionStore,
+  type KeyValueStore,
+} from "./local";
 export { openOfferDb } from "./offerDb";
 export { CURRENT_SCHEMA_VERSION, migrateStorage } from "./migrations";

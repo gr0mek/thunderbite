@@ -6,6 +6,7 @@ import { Toggle } from "@/ui/shared/Toggle";
 import { DealBar } from "@/ui/shared/DealBar";
 import { MARKET_MIN_SAMPLE } from "@/shared/schemas";
 import { dealThreshold } from "@/core/market";
+import { watchCurrency } from "@/shared/sites";
 
 interface WatchRowProps {
   watch: Watch;
@@ -36,17 +37,20 @@ export function WatchRow({
     .find((h) => h && h.status !== "ok");
 
   const deal = watch.deal?.enabled ? watch.deal : undefined;
+  const currency = watchCurrency(watch);
   const metaParts = [
     deal
       ? watch.market
         ? copy.deal.rowMeta(
-            formatPrice(dealThreshold(watch.market.median, deal.thresholdPct)),
-            formatPrice(watch.market.median),
+            formatPrice(dealThreshold(watch.market.median, deal.thresholdPct), currency),
+            formatPrice(watch.market.median, currency),
             watch.market.sampleSize,
           )
         : copy.deal.marketLearningShort(0, MARKET_MIN_SAMPLE)
       : null,
-    !deal && watch.priceMax !== undefined ? `do ${formatPrice(watch.priceMax)}` : null,
+    !deal && watch.priceMax !== undefined
+      ? `do ${formatPrice(watch.priceMax, currency)}`
+      : null,
     watch.sites.map((s) => copy.siteInitial[s]).join(" "),
     `co ${copy.form.intervalPreset(watch.checkIntervalMinutes)}`,
   ].filter(Boolean);
@@ -84,7 +88,11 @@ export function WatchRow({
       </div>
       <div class="text-meta">{metaParts.join(" · ")}</div>
       {deal && watch.market && (
-        <DealBar median={watch.market.median} thresholdPct={deal.thresholdPct} />
+        <DealBar
+          median={watch.market.median}
+          thresholdPct={deal.thresholdPct}
+          currency={currency}
+        />
       )}
       {watch.paused ? (
         <div class="text-meta">{copy.watchTile.paused}</div>

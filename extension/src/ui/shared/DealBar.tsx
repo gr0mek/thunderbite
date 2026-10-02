@@ -4,11 +4,12 @@ import { dealThreshold } from "@/core/market";
 interface DealBarProps {
   median: number;
   thresholdPct: number;
+  currency: string;
 }
 
 /** One-line scale from 0 to 1.5× the market median: the yellow zone is
  * where a deal would land, the tick is the median. */
-export function DealBar({ median, thresholdPct }: DealBarProps) {
+export function DealBar({ median, thresholdPct, currency }: DealBarProps) {
   const max = median * 1.5;
   const threshold = dealThreshold(median, thresholdPct);
   const pct = (v: number) => `${Math.min(100, (v / max) * 100)}%`;
@@ -18,10 +19,10 @@ export function DealBar({ median, thresholdPct }: DealBarProps) {
       <div class="deal-bar-zone" style={{ width: pct(threshold) }} />
       <div class="deal-bar-median" style={{ left: pct(median) }} />
       <span class="deal-bar-label" style={{ left: pct(threshold) }}>
-        {formatPrice(threshold)}
+        {formatPrice(threshold, currency)}
       </span>
       <span class="deal-bar-label" style={{ left: pct(median) }}>
-        {formatPrice(median)}
+        {formatPrice(median, currency)}
       </span>
     </div>
   );

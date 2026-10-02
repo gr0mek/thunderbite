@@ -30,3 +30,17 @@ export function createFakeAdapter(
     },
   };
 }
+
+/** A site the user hasn't set up (eBay without keys): health checks skip
+ * it, and searching it fails like the real one does. */
+export function createUnconfiguredAdapter(site: SiteId): SiteAdapter {
+  return {
+    ...createFakeAdapter(site),
+    async search(): Promise<NormalizedOffer[]> {
+      throw new Error(`${site} is not configured`);
+    },
+    async isConfigured() {
+      return false;
+    },
+  };
+}

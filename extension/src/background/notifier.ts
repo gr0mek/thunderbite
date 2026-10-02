@@ -64,6 +64,10 @@ export class NotificationTargetStore {
   }
 }
 
+function siteList(offers: OfferRecord[]): string {
+  return [...new Set(offers.map((o) => copy.siteNames[o.site]))].join(" i ");
+}
+
 export class Notifier {
   constructor(
     private readonly notifications: NotificationsPort,
@@ -96,8 +100,8 @@ export class Notifier {
       await this.notifications.create(id, {
         title: copy.notification.dealGrouped(offers.length, watch.name),
         message: copy.notification.groupedBody(
-          prices.length ? formatPrice(Math.min(...prices)) : "—",
-          copy.siteNames.vinted,
+          prices.length ? formatPrice(Math.min(...prices), offers[0]!.currency) : "—",
+          siteList(offers),
         ),
         iconUrl: DEFAULT_ICON,
         requireInteraction: true,
@@ -108,10 +112,13 @@ export class Notifier {
       const id = `offer:${offer.key}:${crypto.randomUUID()}`;
       await this.targets.set(id, { type: "offer", offerKey: offer.key, url: offer.url });
       await this.notifications.create(id, {
-        title: copy.notification.deal(formatPrice(offer.price), offer.title),
+        title: copy.notification.deal(
+          formatPrice(offer.price, offer.currency),
+          offer.title,
+        ),
         message: copy.notification.dealBody(
           offer.discountPct ?? 0,
-          formatPrice(offer.marketPrice ?? null),
+          formatPrice(offer.marketPrice ?? null, offer.currency),
           copy.siteNames[offer.site],
         ),
         iconUrl: DEFAULT_ICON,
@@ -124,7 +131,12 @@ export class Notifier {
     const id = `offer:${offer.key}:${crypto.randomUUID()}`;
     await this.targets.set(id, { type: "offer", offerKey: offer.key, url: offer.url });
     await this.notifications.create(id, {
-      title: copy.notification.single(formatPrice(offer.price), offer.title),
+      title: copy.notification.single(
+        offer.auction
+          ? `${copy.offerRow.auction} ${formatPrice(offer.price, offer.currency)}`
+          : formatPrice(offer.price, offer.currency),
+        offer.title,
+      ),
       message: copy.notification.singleBody(
         copy.siteNames[offer.site],
         offer.location ?? "",
@@ -138,11 +150,12 @@ export class Notifier {
     const id = `grouped:${watch.id}:${crypto.randomUUID()}`;
     await this.targets.set(id, { type: "grouped", watchId: watch.id });
     const prices = offers.map((o) => o.price).filter((p): p is number => p !== null);
-    const fromPrice = prices.length ? formatPrice(Math.min(...prices)) : "—";
-    const sites = [...new Set(offers.map((o) => copy.siteNames[o.site]))].join(" i ");
+    const fromPrice = prices.length
+      ? formatPrice(Math.min(...prices), offers[0]!.currency)
+      : "—";
     await this.notifications.create(id, {
       title: copy.notification.grouped(offers.length, watch.name),
-      message: copy.notification.groupedBody(fromPrice, sites),
+      message: copy.notification.groupedBody(fromPrice, siteList(offers)),
       iconUrl: DEFAULT_ICON,
     });
   }

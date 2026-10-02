@@ -10,6 +10,7 @@ import { formatRelativeTime } from "@/shared/format";
 import { requestEmailVerification } from "@/shared/backendClient";
 import { storage, useSiteHealth } from "@/ui/shared/dataHooks";
 import { Modal } from "@/ui/shared/Modal";
+import { EbayKeysPanel } from "../components/EbayKeysPanel";
 
 interface SettingsScreenProps {
   settings: Settings;
@@ -171,22 +172,26 @@ export function SettingsScreen({
           {siteHealth.map((h) => (
             <div key={h.site} class="fx ac gap2 text-body">
               <span
-                class={`status-dot status-dot--${h.status === "ok" ? "ok" : "degraded"}`}
+                class={`status-dot status-dot--${h.site === "ebay" && !settings.ebay ? "off" : h.status === "ok" ? "ok" : "degraded"}`}
               />
               <span style={{ minWidth: 64, color: "var(--ink)" }}>
                 {copy.siteNames[h.site]}
               </span>
               <span class="text-meta">
-                {h.status === "ok"
-                  ? h.lastSuccessAt
-                    ? `${copy.settings.serviceWorking} · ${copy.settings.lastSuccessfulCheck(formatRelativeTime(h.lastSuccessAt))} · ${copy.settings.errorCount(0)}`
-                    : copy.settings.serviceWorking
-                  : `${copy.settings.problemSince(h.since ? formatRelativeTime(h.since) : "—")} · ${copy.settings.errorCount(h.consecutiveErrors)}${h.lastErrorCode ? ` · ${copy.settings.lastErrorCode(h.lastErrorCode)}` : ""}`}
+                {h.site === "ebay" && !settings.ebay
+                  ? copy.settings.ebayNotConfigured
+                  : h.status === "ok"
+                    ? h.lastSuccessAt
+                      ? `${copy.settings.serviceWorking} · ${copy.settings.lastSuccessfulCheck(formatRelativeTime(h.lastSuccessAt))} · ${copy.settings.errorCount(0)}`
+                      : copy.settings.serviceWorking
+                    : `${copy.settings.problemSince(h.since ? formatRelativeTime(h.since) : "—")} · ${copy.settings.errorCount(h.consecutiveErrors)}${h.lastErrorCode ? ` · ${copy.settings.lastErrorCode(h.lastErrorCode)}` : ""}`}
               </span>
             </div>
           ))}
         </div>
       </div>
+
+      <EbayKeysPanel settings={settings} onSaved={onSettingsChange} />
 
       <div class="options-panel fx ac jb" style={{ flexDirection: "row" }}>
         <div>

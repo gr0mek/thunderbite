@@ -1,4 +1,4 @@
-import { formatRelativeTime } from "@/shared/format";
+import { formatAuctionMeta, formatRelativeTime } from "@/shared/format";
 import { copy } from "@/shared/copy.pl";
 import type { OfferRecord } from "@/shared/schemas";
 
@@ -26,13 +26,21 @@ export function OfferTitleBlock({ offer, watchName }: OfferTitleBlockProps) {
         </span>
       </div>
       <div class="fx ac gap2 text-meta">
-        <span class="site-badge">{copy.siteInitial[offer.site]}</span>
-        <span>
+        <span class="site-badge" title={copy.siteNames[offer.site]}>
+          {copy.siteInitial[offer.site]}
+        </span>
+        {offer.auction && (
+          <span class="deal-pill auction-pill">{copy.offerRow.auction}</span>
+        )}
+        <span class="ellipsis">
           {[offer.location, formatRelativeTime(offer.foundAt)]
             .filter(Boolean)
             .join(" · ")}
         </span>
       </div>
+      {offer.auction && formatAuctionMeta(offer) && (
+        <div class="text-meta ellipsis">{formatAuctionMeta(offer)}</div>
+      )}
       {watchName && <div class="text-meta">{watchName}</div>}
     </div>
   );
