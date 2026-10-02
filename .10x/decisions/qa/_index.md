@@ -1,3 +1,3 @@
 # qa — index
 
-Active features: `cloud-worker` (brainstorming). Nothing decided yet.
+Active features: `mvp-cloud-version` (brainstorming). Nothing decided yet.

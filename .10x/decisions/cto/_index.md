@@ -1,6 +1,6 @@
 # CTO — index
 
-Active features: `chrome-extension` (built), `cloud-worker` (brainstorming).
+Active features: `chrome-extension` (built), `mvp-cloud-version` (brainstorming).
 
 ## Cross-cutting [DISCOVERED]
 - Product: Thunder Bait — Vinted deal monitor. Private / small-scale use ("użytek prywatny").
