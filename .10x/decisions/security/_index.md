@@ -1,3 +1,3 @@
-# security — index
+# Security — index
 
-Active features: `mvp-cloud-version` (brainstorming). Nothing decided yet.
+Active features: `mvp-cloud-version` (stage 0 reviewed).

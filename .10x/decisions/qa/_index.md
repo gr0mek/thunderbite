@@ -1,3 +1,3 @@
-# qa — index
+# QA — index
 
-Active features: `mvp-cloud-version` (brainstorming). Nothing decided yet.
+Active features: `mvp-cloud-version` (stage 0 verified with mocks).
